@@ -10,7 +10,7 @@ using namespace std;
 #include "../protocol.h"
 #include "../FileHandler.h"
 #include "NetworkClientThread.h"
-#include "SyncModel.h"
+//#include "SyncModel.h"
 
 NetworkClientThread::NetworkClientThread(QObject* parent) :
   QThread(parent),
@@ -334,7 +334,9 @@ bool NetworkClientThread::_get_files()
     }
     
     QString full_path = QDir::cleanPath(_dir + "/" + remote_fd.relative_filename);
-    FileHandler fh(full_path);
+    FileData fd(remote_fd);
+    fd.filename = full_path;
+    FileHandler fh(fd);
     
     if( !fh.begin_file_write() ) return false;
     if( fh.get_fd().isdir ) {
@@ -368,6 +370,7 @@ bool NetworkClientThread::_get_files()
       fh.write_to_file(buffer);
       buffer.clear();
     }
+
     fh.end_file_write();
     buffer.clear();
     emit size_received(++total_received);
