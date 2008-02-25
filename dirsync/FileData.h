@@ -25,6 +25,16 @@ class FileData {
   bool operator>(const FileData &fd)
   { return (filename > fd.filename); }
 
+  bool operator==(const FileData &fd)
+  { return ((relative_filename == fd.relative_filename) &&
+	    (size == fd.size) &&
+	    (modtime == fd.modtime) &&
+	    (isdir == fd.isdir) &&
+	    (checksum == fd.checksum)); }
+
+  bool operator!=(const FileData &fd)
+    { return !(*this==fd);}
+
   QString filename;
   QString relative_filename;
   quint64 size;
