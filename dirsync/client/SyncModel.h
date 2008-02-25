@@ -3,8 +3,10 @@
 
 #include <QAbstractTableModel>
 
-#include "../FileData.h"
+#include "../FileAgent.h"
 #include "../FileHandler.h"
+#include "../FileData.h"
+#include "DirData.h"
 
 namespace Action {
   const int Unset = 0;
@@ -29,17 +31,17 @@ class SyncData
 {
  public:
   SyncData();
-  SyncData(const FileData&, const FileData&, const FileData&, const int &);
+  SyncData(const FileAgent&, const FileAgent&, bool);
   SyncData(const SyncData &);
   ~SyncData() {}
 
-  FileData local;
-  FileData remote;
+  void determine_situation_first_time();
+  void determine_situation();
 
-  FileData prev_local;
-  FileData prev_remote;
+  QString relative_filename;
 
-  FileData lastsync;
+  FileAgent local;
+  FileAgent remote;
 
   QString situ;
   int action;
@@ -58,30 +60,33 @@ Q_OBJECT
   QVariant data(const QModelIndex &, int) const;
   QVariant headerData(int, Qt::Orientation, int ) const;
 
+  void set_action(const QModelIndexList &, quint32);
+
   QList<FileData> get_files_to_send();
   QList<FileData> get_files_to_get();
   QList<FileData> get_remote_files_to_delete();
   QList<FileData> get_local_files_to_delete();
-  void set_local_dir(QString d) {_local_dir = d;};
+
   QString get_local_dir() {return _local_dir;}
-  void set_action(const QModelIndexList &, quint32);
+  void set_local_dir(QString d) {_local_dir = d; _local_dirdata.set_dir(d);}
+  void make_local_list();
+  void reset();
 
  public slots:
-  void construct(QList<FileData>);
+  void set_remote_filelist(QList<FileData>);
   void save_sync_file();
 
  private:
   void make_changes_list();
-  void make_local_list();
   void _read_dir(QString, const QDir &);
   void _compile_changes();
   bool _read_last_sync_file();
   void _make_fresh_sync_list();
 
+  bool _loaded_previous_state;
   QString _local_dir;
-  QList<FileData> _local_files;
-  QList<FileData> _remote_files;
-  QList<FileData> _sync_files;
+  DirData _local_dirdata;
+  DirData _remote_dirdata;
 
   QList<SyncData> sync_list;
 
