@@ -145,7 +145,10 @@ void NetworkClientThread::run()
 
     case ClientMode::Syncing:
       if( _send_files() &&
-	  _get_files() )
+	  _get_files() &&
+	  _delete_local_files() &&
+	  _delete_remote_files()
+	  )
 	emit success();
       break;
 
@@ -200,7 +203,7 @@ void NetworkClientThread::_get_remote_filelist()
   if(_socket->bytesAvailable()==0) _socket->waitForReadyRead();
   tcp >> nfiles;
   cout << "Receiving info on " << nfiles << " files..." << endl;
-  for(int i=0; i<nfiles; i++) {
+  for(quint32 i=0; i<nfiles; i++) {
     FileData fd;
     quint32 size(0);
     if(_socket->bytesAvailable()<4) _socket->waitForReadyRead();
@@ -387,27 +390,42 @@ bool NetworkClientThread::_get_files()
 }
 
 
-void NetworkClientThread::_delete_remote_files()
+bool NetworkClientThread::_delete_remote_files()
 {
   cout << "NetworkClientThread::_delete_remote_files()" << endl;
-  while(!_quit && _remote_files_to_delete.size()>0) {
+  if(!_quit && _remote_files_to_delete.size()>0) {
 
     quint32 handshake;
     QDataStream tcp(_socket);
     tcp.setVersion(QDataStream::Qt_4_0);
     tcp << HandShake::DeleteFiles;
-    tcp << _remote_files_to_delete;
+
+    tcp << quint32(_remote_files_to_delete.size());
+
+    for(int i=0; i<_remote_files_to_delete.size(); i++) {
+      FileData fd(_remote_files_to_delete[i]);
+      cout << "Sending FD:\n" << fd << endl;
+      FileHandler::send_fd_to_socket(fd, _socket);
+    }
+
+    while( _socket->bytesAvailable() < 4) {
+      if( !_socket->waitForReadyRead(10000)) {
+	emit error(_socket->errorString());
+	cout << qPrintable(_socket->errorString()) << endl;
+	return false;
+      }
+    }
     tcp >> handshake;
     if(handshake != HandShake::Acknowledge) {
       cout << "Bad handshake from server! (" << handshake << ")" << endl;
-      return;
+      return false;
     }
   }
-  return;
+  return true;
 }
 
 
-void NetworkClientThread::_delete_local_files()
+bool NetworkClientThread::_delete_local_files()
 {
   cout << "NetworkClientThread::_delete_local_files()" << endl;
   while(!_quit && _local_files_to_delete.size()>0) {
@@ -430,7 +448,7 @@ void NetworkClientThread::_delete_local_files()
       }
     }
   }
-  return;
+  return true;
 }
 
 

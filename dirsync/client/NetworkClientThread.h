@@ -60,8 +60,8 @@ Q_OBJECT
   void _get_remote_filelist();
   bool _send_files();
   bool _get_files();
-  void _delete_remote_files();
-  void _delete_local_files();
+  bool _delete_remote_files();
+  bool _delete_local_files();
 
   QTcpSocket *_socket;
   quint32 _packet_size;
