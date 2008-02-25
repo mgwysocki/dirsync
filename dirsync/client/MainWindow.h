@@ -38,6 +38,7 @@ class MainWindow : public QMainWindow
   void set_to_get();
   void set_to_remote_delete();
   void set_to_local_delete();
+  void set_remote_filelist(QList<FileData> fl);
 
  private:
   void delete_local_file(const FileData &);

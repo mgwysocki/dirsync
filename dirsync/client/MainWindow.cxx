@@ -37,7 +37,10 @@ MainWindow::MainWindow() :
 
 void MainWindow::new_sync()
 {
-  //cout << "MainWindow::new_sync()" << endl;
+  cout << "MainWindow::new_sync()" << endl;
+
+  _sync_model->reset();
+
   ClientDialog cd(this);
   int value = cd.exec();
   if(value == QDialog::Rejected)
@@ -45,10 +48,11 @@ void MainWindow::new_sync()
 
   _net_thread.reset();
 
-  //cout << "MainWindow: setting the server, port, and dirs..." << endl;
+  cout << "MainWindow: setting the server, port, and dirs..." << endl;
   _local_dir = ( cd.client_dir() );
   _remote_dir = ( cd.server_dir() );
   _sync_model->set_local_dir(_local_dir);
+  _sync_model->make_local_list();
 
   _net_thread.set_server( cd.server() );
   _net_thread.set_port( cd.port() );
@@ -58,11 +62,20 @@ void MainWindow::new_sync()
 
   this->disable();
   connect(&_net_thread, SIGNAL(got_filelist(QList<FileData>)), 
-	  _sync_model, SLOT(construct(QList<FileData>)));
+	  this, SLOT(set_remote_filelist(QList<FileData>)));
   connect(&_net_thread, SIGNAL(done()), 
 	  this, SLOT(enable()));
   _net_thread.set_mode(ClientMode::Reading);
   _net_thread.start();
+  //  _net_thread.wake_up();
+  return;
+}
+
+void MainWindow::set_remote_filelist(QList<FileData> fl)
+{
+  disconnect(&_net_thread, SIGNAL(got_filelist(QList<FileData>)), 
+	     this, SLOT(set_remote_filelist(QList<FileData>)));
+  _sync_model->set_remote_filelist(fl);
   return;
 }
 
