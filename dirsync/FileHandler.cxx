@@ -62,6 +62,7 @@ FileData FileHandler::get_fd_from_socket(QTcpSocket* socket)
     }
   }
   tcp >> fd;
+  cout << "Received FileData:\n" << fd << endl;
   return fd;
 }
 
