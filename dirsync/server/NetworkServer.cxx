@@ -178,8 +178,15 @@ void NetworkServer::read_incoming()
 
   } else if(handshake == HandShake::DeleteFiles) {
     if(_socket->bytesAvailable() == 0) _socket->waitForReadyRead();
+    quint32 n_files_to_delete(0);
+    tcp >> n_files_to_delete;
+
     QList<FileData> files_to_delete;
-    tcp >> files_to_delete;
+    for(quint32 i=0; i<n_files_to_delete; i++) {
+      FileData fd( FileHandler::get_fd_from_socket(_socket) );
+      files_to_delete.append(fd);
+    }
+
     _delete_local_files(files_to_delete);
     cout << "Sending acknowledge..." << endl;
     tcp << HandShake::Acknowledge;
@@ -305,6 +312,7 @@ void NetworkServer::_delete_local_files(QList<FileData> &local_files_to_delete)
   while(!_quit && local_files_to_delete.size()>0) {
 
     FileData fd(local_files_to_delete.takeFirst());
+    cout << "Deleting " << qPrintable(fd.filename) << "..." << endl;
 
     if( fd.isdir ){
       QFileInfo fi(fd.filename);
