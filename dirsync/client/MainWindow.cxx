@@ -3,7 +3,7 @@
 #include <iostream>
 using namespace std;
 
-#include "ClientDialog.h"
+#include "NewSyncDialog.h"
 #include "SyncModel.h"
 #include "MainWindow.h"
 
@@ -41,7 +41,7 @@ void MainWindow::new_sync()
 
   _sync_model->reset();
 
-  ClientDialog cd(this);
+  NewSyncDialog cd(this);
   int value = cd.exec();
   if(value == QDialog::Rejected)
     return;
