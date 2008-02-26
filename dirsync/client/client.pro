@@ -8,19 +8,21 @@ MOC_DIR = $$OBJECTS_DIR
 HEADERS       = ../FileData.h \
                 ../FileHandler.h \
                 ../FileAgent.h \
+                SaveFile.h \
                 DirData.h \
                 SyncModel.h \
                 NetworkClientThread.h \
-                ClientDialog.h \
+                NewSyncDialog.h \
                 MainWindow.h
 
 SOURCES       = ../FileData.cxx \
                 ../FileHandler.cxx \
                 ../FileAgent.cxx \
+                SaveFile.cxx \
                 DirData.cxx \
                 SyncModel.cxx \
                 NetworkClientThread.cxx \
-                ClientDialog.cxx \
+                NewSyncDialog.cxx \
                 MainWindow.cxx \
                 main.cxx
 
