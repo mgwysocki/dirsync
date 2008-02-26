@@ -229,22 +229,13 @@ void NetworkClientThread::_get_remote_filelist()
 bool NetworkClientThread::_send_files()
 {
   cout << "NetworkClientThread::_send_files()" << endl;
-  _pd->setWindowTitle("Copying files from A to B...");
-  _pd->setMaximum( _files_to_send.size() );
-  connect(this, SIGNAL(change_text(QString)), _pd, SLOT(setLabelText(QString)));
-  connect(this, SIGNAL(size_sent(int)), _pd, SLOT(setValue(int)));
-  emit change_text( tr("Transferring files...") );
   int total_sent = 0;
 
-
-  cout << "ProgressDialog range = " << _pd->minimum() << "," << _pd->maximum() << endl;
   while(!_quit && _files_to_send.size()>0) {
-
-    cout << "ProgressDialog value = " << _pd->value() << endl;
 
     FileData local_fd(_files_to_send.takeFirst());
     cout << "Sending file to server: " << qPrintable(local_fd.relative_filename) << endl;
-    emit change_text(local_fd.relative_filename);
+    emit change_upload_status( QString("Sending %1 to server...").arg(local_fd.relative_filename) );
 
     quint32 handshake;
     QDataStream tcp(_socket);
@@ -268,7 +259,7 @@ bool NetworkClientThread::_send_files()
 
     if(local_fd.isdir) {
       cout << "fd.isdir == true... FileData sent." << endl;
-      emit size_sent(++total_sent);
+      emit increment_upload();
       continue;
     }
 
@@ -297,26 +288,21 @@ bool NetworkClientThread::_send_files()
       cout << "Wrong handshake! (" << handshake << ")" << endl;
       return false;
     }
-    emit size_sent(++total_sent);
+    emit increment_upload();
   }
 
-  disconnect(this, SIGNAL(size_sent(int)), _pd, SLOT(setValue(int)));
-  _pd->reset();
   return true;
 }
 
 bool NetworkClientThread::_get_files()
 {
   cout << "NetworkClientThread::_get_files()" << endl;
-  _pd->setWindowTitle("Copying files from B to A...");
-  _pd->setMaximum( _files_to_get.size() );
-  connect(this, SIGNAL(size_received(int)), _pd, SLOT(setValue(int)));
   int total_received = 0;
 
   while(!_quit && _files_to_get.size()>0) {
 
     FileData remote_fd(_files_to_get.takeFirst());
-    emit change_text(remote_fd.relative_filename);
+    emit change_download_status(QString("Downloading %1 from server...").arg(remote_fd.relative_filename) );
 
     cout << "NetworkClientThread: requesting file..." << endl
 	 << "FileData::filename = " << qPrintable(remote_fd.filename) << endl
@@ -343,7 +329,7 @@ bool NetworkClientThread::_get_files()
     
     if( !fh.begin_file_write() ) return false;
     if( fh.get_fd().isdir ) {
-      emit size_received(++total_received);
+      emit increment_download();
       continue;
     }
 
@@ -376,16 +362,12 @@ bool NetworkClientThread::_get_files()
 
     fh.end_file_write();
     buffer.clear();
-    emit size_received(++total_received);
+    emit increment_download();
 
     cout << "Received filename: " << qPrintable(remote_fd.relative_filename)
 	 << " (" << remote_fd.size << " bytes)" << endl;
     cout << "Checksum: " <<  fh.get_checksum() << endl;
   }
-  disconnect(this, SIGNAL(size_received(int)), _pd, SLOT(setValue(int)));
-  _pd->reset();
-  _pd->hide();
-  _pd->deleteLater();
   return true;
 }
 

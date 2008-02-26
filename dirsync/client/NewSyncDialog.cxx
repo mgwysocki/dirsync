@@ -13,12 +13,14 @@ void ProfileReader::read_profiles()
   profile_dir = QDir::home();
   if(!profile_dir.exists(QObject::tr(".dirsync"))) {
     profile_dir.mkpath(".dirsync/profiles");
+    profile_dir.cd(".dirsync/profiles");
     return;
   }
 
   profile_dir.cd(".dirsync");
   if(!profile_dir.exists(QObject::tr("profiles"))) {
     profile_dir.mkpath("profiles");
+    profile_dir.cd("profiles");
     return;
   }
 

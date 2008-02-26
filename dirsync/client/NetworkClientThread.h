@@ -47,9 +47,10 @@ Q_OBJECT
   void done();
   void success();
   void error(const QString &message);
-  void size_sent(int);
-  void size_received(int);
-  void change_text(QString);
+  void change_upload_status(QString);
+  void change_download_status(QString);
+  void increment_upload();
+  void increment_download();
 
  public slots:
   void wake_up();

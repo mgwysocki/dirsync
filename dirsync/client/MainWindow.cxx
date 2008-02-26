@@ -6,7 +6,7 @@ using namespace std;
 #include "NewSyncDialog.h"
 #include "SyncModel.h"
 #include "MainWindow.h"
-
+#include "ProgressDialog.h"
 
 MainWindow::MainWindow() :
   QMainWindow(),
@@ -89,9 +89,14 @@ void MainWindow::perform_sync()
   _net_thread.set_remote_files_to_delete( _sync_model->get_remote_files_to_delete() );
   _net_thread.set_local_files_to_delete( _sync_model->get_local_files_to_delete() );
   
-  QProgressDialog* pd = new QProgressDialog("", "Cancel", 0, 1, this);
+  ProgressDialog* pd = new ProgressDialog(this);
+  pd->set_n_upload( _sync_model->get_files_to_send().size() );
+  pd->set_n_download( _sync_model->get_files_to_get().size() );
+  connect(&_net_thread, SIGNAL(change_upload_status(QString)), pd, SLOT(set_upload_status(QString)));
+  connect(&_net_thread, SIGNAL(increment_upload()), pd, SLOT(increment_upload()));
+  connect(&_net_thread, SIGNAL(change_download_status(QString)), pd, SLOT(set_download_status(QString)));
+  connect(&_net_thread, SIGNAL(increment_download()), pd, SLOT(increment_download()));
   pd->show();
-  _net_thread.set_progress_dialog(pd);
 
   connect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
   _net_thread.set_mode(ClientMode::Syncing);
