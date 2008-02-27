@@ -96,6 +96,7 @@ void MainWindow::perform_sync()
   connect(&_net_thread, SIGNAL(increment_upload()), pd, SLOT(increment_upload()));
   connect(&_net_thread, SIGNAL(change_download_status(QString)), pd, SLOT(set_download_status(QString)));
   connect(&_net_thread, SIGNAL(increment_download()), pd, SLOT(increment_download()));
+  //connect(&_net_thread, SIGNAL(done()), pd, SLOT(accept()));
   pd->show();
 
   connect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
