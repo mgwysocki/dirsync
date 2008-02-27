@@ -11,8 +11,8 @@ Q_OBJECT
  public:
   ProgressDialog(QWidget* parent=0);
   
-  void set_n_upload(int n) {_upload_bar.setRange(0, n);}
-  void set_n_download(int n) {_download_bar.setRange(0, n);}
+  void set_n_upload(int n);
+  void set_n_download(int n);
 
  public slots:
   void set_upload_status(QString text) {_upload_status.setText(text);}
