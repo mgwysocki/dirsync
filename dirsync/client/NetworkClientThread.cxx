@@ -15,7 +15,7 @@ using namespace std;
 NetworkClientThread::NetworkClientThread(QObject* parent) :
   QThread(parent),
   _socket(0),
-  _packet_size(10*1024*1024),
+  _packet_size(1024*1024),
   _mode( ClientMode::None ),
   _quit(false)
 {
@@ -144,6 +144,9 @@ void NetworkClientThread::run()
       break;
 
     case ClientMode::Syncing:
+      emit change_upload_status( QString("Upload pending...") );
+      emit change_download_status( QString("Download pending...") );
+
       if( _send_files() &&
 	  _get_files() &&
 	  _delete_local_files() &&
@@ -266,6 +269,7 @@ bool NetworkClientThread::_send_files()
     QFile outfile(local_fd.filename);
     outfile.open(QIODevice::ReadOnly);
 
+    quint16 running_sum(0);
     quint64 remaining_size(local_fd.size);
     quint32 blocksize(_packet_size);
     cout << "blocksize = " << blocksize << endl;
@@ -273,16 +277,21 @@ bool NetworkClientThread::_send_files()
       if(remaining_size<blocksize) blocksize = remaining_size;
       cout << "remaining_size, block_size = " 
 	   << remaining_size << ", " << blocksize << endl;
-      tcp << outfile.read(blocksize);
+      QByteArray data( outfile.read(blocksize) );
+      tcp << data;
+      running_sum += qChecksum(data, data.length());
       remaining_size -= blocksize;
     }
     outfile.close();
 
+    cout << "Running checksum: " << running_sum << endl;
     outfile.open(QIODevice::ReadOnly);
     cout << "Checksum: " << qChecksum( outfile.readAll(), local_fd.size ) << endl;
     outfile.close();
-
-    _socket->waitForReadyRead();
+    
+    cout << "Waiting for acknowledge..." << endl;
+    while(_socket->bytesAvailable() < 4)
+      _socket->waitForReadyRead();
     tcp >> handshake;
     if(handshake != HandShake::Acknowledge) {
       cout << "Wrong handshake! (" << handshake << ")" << endl;
@@ -290,7 +299,8 @@ bool NetworkClientThread::_send_files()
     }
     emit increment_upload();
   }
-
+  
+  emit change_upload_status( QString("Upload complete.") );
   return true;
 }
 
@@ -368,6 +378,8 @@ bool NetworkClientThread::_get_files()
 	 << " (" << remote_fd.size << " bytes)" << endl;
     cout << "Checksum: " <<  fh.get_checksum() << endl;
   }
+
+  emit change_download_status( QString("Download complete.") );
   return true;
 }
 
