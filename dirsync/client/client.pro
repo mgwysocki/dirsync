@@ -14,6 +14,7 @@ HEADERS       = ../FileData.h \
                 SyncModel.h \
                 NetworkClientThread.h \
                 NewSyncDialog.h \
+                InfoDockWidget.h \
                 MainWindow.h
 
 SOURCES       = ../FileData.cxx \
@@ -25,6 +26,7 @@ SOURCES       = ../FileData.cxx \
                 SyncModel.cxx \
                 NetworkClientThread.cxx \
                 NewSyncDialog.cxx \
+                InfoDockWidget.cxx \
                 MainWindow.cxx \
                 main.cxx
 

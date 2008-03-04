@@ -416,3 +416,19 @@ void SyncModel::reset()
   _local_files_to_delete.clear();
   return;
 }
+
+void SyncModel::selection_changed(QItemSelection selected, QItemSelection deselected)
+{
+  QModelIndex index;
+  QModelIndexList items = selected.indexes();
+
+  index = items[0];
+  SyncData sd( sync_list[index.row()] );
+  FileData lfd( sd.local.current_fd );
+  FileData rfd( sd.remote.current_fd );
+  QString local_text = QString("%1\n%2\n%3").arg(lfd.relative_filename).arg(lfd.size).arg(lfd.modtime);
+  QString remote_text = QString("%1\n%2\n%3").arg(rfd.relative_filename).arg(rfd.size).arg(rfd.modtime);
+
+  emit set_info(local_text, remote_text);
+  return;
+}

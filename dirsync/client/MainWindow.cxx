@@ -7,12 +7,14 @@ using namespace std;
 #include "SyncModel.h"
 #include "MainWindow.h"
 #include "ProgressDialog.h"
+#include "InfoDockWidget.h"
 
 MainWindow::MainWindow() :
   QMainWindow(),
   _sync_model(new SyncModel),
   _view(new QTableView),
-  _toolbar(new QToolBar)
+  _toolbar(new QToolBar),
+  _info_dock(new InfoDockWidget)
 {
   _view->setModel(_sync_model);
   _view->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -23,9 +25,16 @@ MainWindow::MainWindow() :
   this->setCentralWidget(_view);
   
   this->addToolBar(_toolbar);
+  this->addDockWidget(Qt::BottomDockWidgetArea, _info_dock);
   createActions();
   createMenus();
   
+  connect(_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), 
+	  _sync_model, SLOT(selection_changed(QItemSelection, QItemSelection)));
+
+  connect(_sync_model, SIGNAL(set_info(QString, QString)),
+	  _info_dock, SLOT(set_info(QString, QString)));
+
   setWindowTitle(tr("DirSync Client"));
   QSize maxsize(QApplication::desktop()->size());
   maxsize += QSize(-50, -50);

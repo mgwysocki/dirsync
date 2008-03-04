@@ -11,6 +11,7 @@
 class QAction;
 class QMenu;
 class QToolBar;
+class InfoDockWidget;
 class QTableView;
 class SyncModel;
 
@@ -58,6 +59,8 @@ class MainWindow : public QMainWindow
   QTableView* _view;
 
   QToolBar* _toolbar;
+  InfoDockWidget* _info_dock;
+
   QAction* _new_act;
   QAction* _sync_act;
   QAction* _exit_act;

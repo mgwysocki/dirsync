@@ -2,6 +2,7 @@
 #define __SYNCMODEL_H
 
 #include <QAbstractTableModel>
+#include <QItemSelection>
 
 #include "../FileAgent.h"
 #include "../FileHandler.h"
@@ -72,9 +73,13 @@ Q_OBJECT
   void make_local_list();
   void reset();
 
+ signals:
+  void set_info(QString, QString);
+  
  public slots:
   void set_remote_filelist(QList<FileData>);
   void save_sync_file();
+  void selection_changed(QItemSelection, QItemSelection);
 
  private:
   void make_changes_list();
