@@ -19,20 +19,20 @@ class FileData {
   quint32 socket_size() const
     {return 36+2*(filename.length()+relative_filename.length());}
 
-  bool operator<(const FileData &fd)
+  bool operator<(const FileData &fd) const
   { return (filename < fd.filename); }
 
-  bool operator>(const FileData &fd)
+  bool operator>(const FileData &fd) const
   { return (filename > fd.filename); }
 
-  bool operator==(const FileData &fd)
+  bool operator==(const FileData &fd) const
   { return ((relative_filename == fd.relative_filename) &&
 	    (size == fd.size) &&
 	    (modtime == fd.modtime) &&
 	    (isdir == fd.isdir) &&
 	    (checksum == fd.checksum)); }
 
-  bool operator!=(const FileData &fd)
+  bool operator!=(const FileData &fd) const
     { return !(*this==fd);}
 
   QString filename;
