@@ -1,8 +1,27 @@
 #include "SyncModel.h"
 
+#include <QDateTime>
+
 #include <iostream>
 using namespace std;
 
+QString format_size(const quint64 size)
+{
+  QString sizestr = QString("%1").arg(size);
+  if(sizestr.length()>9) sizestr.insert(sizestr.length()-9, ",");
+  if(sizestr.length()>6) sizestr.insert(sizestr.length()-6, ",");
+  if(sizestr.length()>3) sizestr.insert(sizestr.length()-3, ",");
+  return QString("%1  bytes").arg(sizestr);
+}
+
+QString format_time(const quint32 time)
+{
+  QDateTime dt = QDateTime::fromTime_t(time);
+  return dt.toString("h:mm:ss  MMM d, yyyy");
+}
+
+
+//----------------------------------------------------------------------------------
 SyncData::SyncData() :
   action(0)
 {}
@@ -151,8 +170,33 @@ void SyncData::determine_situation()
     action = Action::Unclear;
     situ = QObject::tr("Should never see this!");
   }
-  
+
   return;
+}
+
+std::pair<QString,QString> SyncData::get_info() const
+{
+  FileData lfd(local.current_fd);
+  FileData rfd(remote.current_fd);
+  QString local_text, remote_text;
+
+  if(lfd.initialized) {
+    local_text += QString("%1\n").arg(lfd.relative_filename);
+    local_text += QString("Size:  %1\n").arg( format_size(lfd.size) );
+    local_text += QString("%1").arg( format_time(lfd.modtime) );
+  } else {
+    local_text += "Does not exist!";
+  }
+
+  if(rfd.initialized) {
+    remote_text += QString("%1\n").arg(rfd.relative_filename);
+    remote_text += QString("Size:  %1\n").arg( format_size(rfd.size) );
+    remote_text += QString("%1").arg( format_time(rfd.modtime) );
+  } else {
+    remote_text += "Does not exist!";
+  }
+
+  return std::pair<QString,QString>(local_text, remote_text);
 }
 
 
@@ -424,11 +468,7 @@ void SyncModel::selection_changed(QItemSelection selected, QItemSelection desele
 
   index = items[0];
   SyncData sd( sync_list[index.row()] );
-  FileData lfd( sd.local.current_fd );
-  FileData rfd( sd.remote.current_fd );
-  QString local_text = QString("%1\n%2\n%3").arg(lfd.relative_filename).arg(lfd.size).arg(lfd.modtime);
-  QString remote_text = QString("%1\n%2\n%3").arg(rfd.relative_filename).arg(rfd.size).arg(rfd.modtime);
-
-  emit set_info(local_text, remote_text);
+  std::pair<QString,QString> info = sd.get_info();
+  emit set_info(info.first, info.second);
   return;
 }

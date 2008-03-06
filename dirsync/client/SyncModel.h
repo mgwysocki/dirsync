@@ -36,6 +36,8 @@ class SyncData
   SyncData(const SyncData &);
   ~SyncData() {}
 
+  std::pair<QString,QString> get_info() const;
+
   void determine_situation_first_time();
   void determine_situation();
 
