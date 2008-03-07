@@ -35,6 +35,8 @@ class MainWindow : public QMainWindow
   void perform_sync();
   void about();
   void display_error(const QString &message);
+  void set_to_client();
+  void set_to_server();
   void set_to_send();
   void set_to_get();
   void set_to_remote_delete();
@@ -64,6 +66,8 @@ class MainWindow : public QMainWindow
   QAction* _new_act;
   QAction* _sync_act;
   QAction* _exit_act;
+  QAction* _sync_to_client_act;
+  QAction* _sync_to_server_act;
   QAction* _delete_remote_act;
   QAction* _delete_local_act;
   QAction* _send_act;

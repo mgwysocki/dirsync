@@ -64,6 +64,8 @@ Q_OBJECT
   QVariant headerData(int, Qt::Orientation, int ) const;
 
   void set_action(const QModelIndexList &, quint32);
+  void set_sync_to_client(const QModelIndexList &);
+  void set_sync_to_server(const QModelIndexList &);
 
   QList<FileData> get_files_to_send();
   QList<FileData> get_files_to_get();

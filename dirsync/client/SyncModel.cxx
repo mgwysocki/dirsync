@@ -270,6 +270,43 @@ void SyncModel::set_action(const QModelIndexList &ilist, quint32 action)
   return;
 }
 
+void SyncModel::set_sync_to_client(const QModelIndexList &ilist)
+{
+  for(int i=0; i<ilist.size(); i++) {
+    int row = ilist[i].row();
+    SyncData sd = sync_list[row];
+    if(sd.local.current_fd != sd.remote.current_fd) {
+      if(sd.local.deleted || !sd.local.current_fd.initialized)
+	sd.action = Action::DeleteFromServer;
+      else
+	sd.action = Action::SendToServer;
+    } else {
+      sd.action = Action::None;
+    }
+    sync_list[row] = sd;
+    emit dataChanged(index(row, 0), index(row, 2));
+  }
+  return;
+}
+
+void SyncModel::set_sync_to_server(const QModelIndexList &ilist)
+{
+  for(int i=0; i<ilist.size(); i++) {
+    int row = ilist[i].row();
+    SyncData sd = sync_list[row];
+    if(sd.local.current_fd != sd.remote.current_fd) {
+      if(sd.remote.deleted || !sd.remote.current_fd.initialized)
+	sd.action = Action::DeleteFromClient;
+      else
+	sd.action = Action::GetFromServer;
+    } else {
+      sd.action = Action::None;
+    }
+    sync_list[row] = sd;
+    emit dataChanged(index(row, 0), index(row, 2));
+  }
+  return;
+}
 
 
 void SyncModel::make_local_list()

@@ -28,6 +28,7 @@ MainWindow::MainWindow() :
   this->addDockWidget(Qt::BottomDockWidgetArea, _info_dock);
   //_info_dock->setFloating(true);
 
+  _toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   createActions();
   createMenus();
   
@@ -135,15 +136,26 @@ void MainWindow::about()
 
 void MainWindow::createActions()
 {
-  _new_act = new QAction(tr("&New Sync"), this);
+  QIcon new_icon("icons/add-file-48x48.png");
+  _new_act = _toolbar->addAction(new_icon, "&New Sync");
   _new_act->setShortcut(tr("Ctrl+N"));
   connect(_new_act, SIGNAL(triggered()), this, SLOT(new_sync()));
-  _toolbar->addAction(_new_act);
 
-  _sync_act = new QAction(tr("&Perform Sync"), this);
+  QIcon sync_icon("icons/synchronize-48x48.png");
+  _sync_act = _toolbar->addAction(sync_icon, "&Perform Sync");
   _sync_act->setShortcut(tr("Ctrl+G"));
   connect(_sync_act, SIGNAL(triggered()), this, SLOT(perform_sync()));
-  _toolbar->addAction(_sync_act);
+
+  _toolbar->addSeparator();
+
+  _sync_to_client_act = _toolbar->addAction("Sync to Client");
+  //_sync_to_client_act->setShortcut(tr("Ctrl+1"));
+  connect(_sync_to_client_act, SIGNAL(triggered()), this, SLOT(set_to_client()));
+  
+  _sync_to_server_act = _toolbar->addAction("Sync to Server");
+  //_sync_to_server_act->setShortcut(tr("Ctrl+1"));
+  connect(_sync_to_server_act, SIGNAL(triggered()), this, SLOT(set_to_server()));
+  
 
   _toolbar->addSeparator();
 
@@ -176,6 +188,21 @@ void MainWindow::createActions()
 
   _about_qt_act = new QAction(tr("About &Qt"), this);
   connect(_about_qt_act, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+}
+
+
+void MainWindow::set_to_client()
+{
+  QModelIndexList ilist = _view->selectionModel()->selectedIndexes();
+  _sync_model->set_sync_to_client(ilist);
+  return;
+}
+
+void MainWindow::set_to_server()
+{
+  QModelIndexList ilist = _view->selectionModel()->selectedIndexes();
+  _sync_model->set_sync_to_server(ilist);
+  return;
 }
 
 void MainWindow::set_to_send()
