@@ -25,12 +25,12 @@ void InfoDockWidget::clear_info()
 
 void InfoDockWidget::set_info(QString client_info, QString server_info)
 {
-  _client_textedit->setText(client_info);
-  _server_textedit->setText(server_info);
+  _client_textedit->setHtml(client_info);
+  _server_textedit->setHtml(server_info);
 }
 
 void InfoDockWidget::set_client_info(QString info)
-{_client_textedit->setText(info);}
+{_client_textedit->setHtml(info);}
 
 void InfoDockWidget::set_server_info(QString info)
-{_server_textedit->setText(info);}
+{_server_textedit->setHtml(info);}

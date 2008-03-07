@@ -180,20 +180,41 @@ std::pair<QString,QString> SyncData::get_info() const
   FileData rfd(remote.current_fd);
   QString local_text, remote_text;
 
-  if(lfd.initialized) {
-    local_text += QString("%1\n").arg(lfd.relative_filename);
-    local_text += QString("Size:  %1\n").arg( format_size(lfd.size) );
-    local_text += QString("%1").arg( format_time(lfd.modtime) );
-  } else {
-    local_text += "Does not exist!";
-  }
+  if(lfd.initialized && rfd.initialized) {
+    local_text += QString("%1<br/>").arg(lfd.relative_filename);
+    remote_text += QString("%1<br/>").arg(rfd.relative_filename);
 
-  if(rfd.initialized) {
-    remote_text += QString("%1\n").arg(rfd.relative_filename);
-    remote_text += QString("Size:  %1\n").arg( format_size(rfd.size) );
+    if(lfd.size == rfd.size) {
+      local_text += QString("Size:  %1<br/>").arg( format_size(lfd.size) );
+      remote_text += QString("Size:  %1<br/>").arg( format_size(rfd.size) );
+    } else {
+      local_text += QString("<font color=crimson>Size:  %1</font><br/>").arg( format_size(lfd.size) );
+      remote_text += QString("<font color=crimson>Size:  %1</font><br/>").arg( format_size(rfd.size) );
+    }
+
+    if(lfd.modtime == rfd.modtime) {
+      local_text += QString("%1").arg( format_time(lfd.modtime) );
+      remote_text += QString("%1").arg( format_time(rfd.modtime) );
+    } else {
+      local_text += QString("<font color=crimson>%1</font>").arg( format_time(lfd.modtime) );
+      remote_text += QString("<font color=crimson>%1</font>").arg( format_time(rfd.modtime) );
+    }
+
+  } else if(lfd.initialized) {
+    local_text += QString("%1<br/>").arg(lfd.relative_filename);
+    local_text += QString("Size:  %1<br/>").arg( format_size(lfd.size) );
+    local_text += QString("%1").arg( format_time(lfd.modtime) );
+    remote_text += "<font color=red>Does not exist!</font>";
+
+  } else if(rfd.initialized) {
+    local_text += "<font color=red>Does not exist!</font>";
+    remote_text += QString("%1<br/>").arg(rfd.relative_filename);
+    remote_text += QString("Size:  %1<br/>").arg( format_size(rfd.size) );
     remote_text += QString("%1").arg( format_time(rfd.modtime) );
+    
   } else {
-    remote_text += "Does not exist!";
+    local_text += "<font color=red>Does not exist!</font>";
+    remote_text += "<font color=red>Does not exist!</font>";
   }
 
   return std::pair<QString,QString>(local_text, remote_text);

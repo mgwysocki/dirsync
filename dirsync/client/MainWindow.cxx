@@ -26,6 +26,8 @@ MainWindow::MainWindow() :
   
   this->addToolBar(_toolbar);
   this->addDockWidget(Qt::BottomDockWidgetArea, _info_dock);
+  //_info_dock->setFloating(true);
+
   createActions();
   createMenus();
   
@@ -136,32 +138,34 @@ void MainWindow::createActions()
   _new_act = new QAction(tr("&New Sync"), this);
   _new_act->setShortcut(tr("Ctrl+N"));
   connect(_new_act, SIGNAL(triggered()), this, SLOT(new_sync()));
-  _toolbar->insertAction(0, _new_act);
+  _toolbar->addAction(_new_act);
 
   _sync_act = new QAction(tr("&Perform Sync"), this);
   _sync_act->setShortcut(tr("Ctrl+G"));
   connect(_sync_act, SIGNAL(triggered()), this, SLOT(perform_sync()));
-  _toolbar->insertAction(0, _sync_act);
+  _toolbar->addAction(_sync_act);
+
+  _toolbar->addSeparator();
 
   _send_act = new QAction(tr("Send File to Server"), this);
   _send_act->setShortcut(tr("Ctrl+1"));
   connect(_send_act, SIGNAL(triggered()), this, SLOT(set_to_send()));
-  _toolbar->insertAction(0, _send_act);
+  _toolbar->addAction(_send_act);
 
   _get_act = new QAction(tr("Get File from Server"), this);
   _get_act->setShortcut(tr("Ctrl+2"));
   connect(_get_act, SIGNAL(triggered()), this, SLOT(set_to_get()));
-  _toolbar->insertAction(0, _get_act);
+  _toolbar->addAction(_get_act);
 
   _delete_remote_act = new QAction(tr("Delete File from Server"), this);
   _delete_remote_act->setShortcut(tr("Ctrl+3"));
   connect(_delete_remote_act, SIGNAL(triggered()), this, SLOT(set_to_remote_delete()));
-  _toolbar->insertAction(0, _delete_remote_act);
+  _toolbar->addAction(_delete_remote_act);
 
   _delete_local_act = new QAction(tr("Delete File from Client"), this);
   _delete_local_act->setShortcut(tr("Ctrl+4"));
   connect(_delete_local_act, SIGNAL(triggered()), this, SLOT(set_to_local_delete()));
-  _toolbar->insertAction(0, _delete_local_act);
+  _toolbar->addAction(_delete_local_act);
 
   _exit_act = new QAction(tr("E&xit"), this);
   _exit_act->setShortcut(tr("Ctrl+Q"));
