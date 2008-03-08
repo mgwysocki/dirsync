@@ -236,7 +236,10 @@ QVariant SyncModel::data(const QModelIndex &index, int role = Qt::DisplayRole) c
   int c = index.column();
   int r = index.row();
   if(c==0) {
-    return QVariant(tr(" ") + sync_list[r].relative_filename + (sync_list[r].isdir? tr("/") : tr("")) );
+    QString var(tr(" ") + sync_list[r].relative_filename);
+    if(sync_list[r].local.current_fd.isdir || sync_list[r].remote.current_fd.isdir)
+      var += tr("/");
+    return  QVariant(var);
   } else if(c==1) {
     return QVariant(sync_list[r].situ);
   } else if(c==2) {
