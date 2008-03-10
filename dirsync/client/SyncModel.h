@@ -58,7 +58,7 @@ Q_OBJECT
  public:
   SyncModel();
   int rowCount(const QModelIndex &) const {return sync_list.size();}
-  int columnCount(const QModelIndex &) const {return 3;}
+  int columnCount(const QModelIndex &) const {return 4;}
 
   QVariant data(const QModelIndex &, int) const;
   QVariant headerData(int, Qt::Orientation, int ) const;
