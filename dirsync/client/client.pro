@@ -15,6 +15,7 @@ HEADERS       = ../FileData.h \
                 NetworkClientThread.h \
                 NewSyncDialog.h \
                 InfoDockWidget.h \
+                MyTableView.h \
                 MainWindow.h
 
 SOURCES       = ../FileData.cxx \
