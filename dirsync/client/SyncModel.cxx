@@ -49,22 +49,32 @@ void SyncData::determine_situation_first_time()
   if( remote.current_fd == local.current_fd ){
     // No difference
     action = Action::None;
-    situ = QObject::tr("A and B are the same");
+    situ = QObject::tr("Synced");
+
+  } else if( !local.current_fd.initialized ){
+    // Local doesn't exist
+    action = Action::GetFromServer;
+    situ = QObject::tr("L doesn't exist");
+
+  } else if( !remote.current_fd.initialized ){
+    // Remote doesn't exist
+    action = Action::SendToServer;
+    situ = QObject::tr("R doesn't exist");
 
   } else if( local.current_fd.modtime > remote.current_fd.modtime ){
     // Local is newer
     action = Action::SendToServer;
-    situ = QObject::tr("A is newer");
+    situ = QObject::tr("L is newer");
 
   } else if( local.current_fd.modtime < remote.current_fd.modtime ){
     // Remote is newer
     action = Action::GetFromServer;
-    situ = QObject::tr("B is newer");
+    situ = QObject::tr("R is newer");
 
   } else {
     // Differ in another way (size, checksum, etc.)
     action = Action::Unclear;
-    situ = QObject::tr("A and B differ");
+    situ = QObject::tr("L and R differ");
 
     cout << "Local file:\n" << local.current_fd << endl
 	 << "Remote file:\n" << remote.current_fd << endl << endl;
@@ -236,14 +246,19 @@ QVariant SyncModel::data(const QModelIndex &index, int role = Qt::DisplayRole) c
   int c = index.column();
   int r = index.row();
   if(c==0) {
-    QString var(tr(" ") + sync_list[r].relative_filename);
-    if(sync_list[r].local.current_fd.isdir || sync_list[r].remote.current_fd.isdir)
+    QString var(tr(" ") + sync_list[r].local.current_fd.relative_filename);
+    if(sync_list[r].local.current_fd.isdir)
       var += tr("/");
     return  QVariant(var);
   } else if(c==1) {
     return QVariant(sync_list[r].situ);
   } else if(c==2) {
     return QVariant(Action::strings[ sync_list[r].action ]);
+  } else if(c==3) {
+    QString var(tr(" ") + sync_list[r].remote.current_fd.relative_filename);
+    if(sync_list[r].remote.current_fd.isdir)
+      var += tr("/");
+    return  QVariant(var);
   }
   return QVariant();
 }
@@ -253,11 +268,13 @@ QVariant SyncModel::headerData(int section, Qt::Orientation orient, int role = Q
 {
   if(orient != Qt::Horizontal || role != Qt::DisplayRole) return QVariant();
   if(section == 0)
-    return QVariant("File");
+    return QVariant("Client File");
   else if(section == 1)
     return QVariant("Situation");
   else if(section == 2)
     return QVariant("Action");
+  else if(section == 3)
+    return QVariant("Server File");
 
   return QVariant();
 }
