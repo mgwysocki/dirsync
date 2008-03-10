@@ -12,7 +12,7 @@ class QAction;
 class QMenu;
 class QToolBar;
 class InfoDockWidget;
-class QTableView;
+class MyTableView;
 class SyncModel;
 
 class MainWindow : public QMainWindow
@@ -58,7 +58,7 @@ class MainWindow : public QMainWindow
   void createActions();
   void createMenus();
 
-  QTableView* _view;
+  MyTableView* _view;
 
   QToolBar* _toolbar;
   InfoDockWidget* _info_dock;

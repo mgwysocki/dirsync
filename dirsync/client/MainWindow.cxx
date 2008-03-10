@@ -8,19 +8,18 @@ using namespace std;
 #include "MainWindow.h"
 #include "ProgressDialog.h"
 #include "InfoDockWidget.h"
+#include "MyTableView.h"
 
 MainWindow::MainWindow() :
   QMainWindow(),
   _sync_model(new SyncModel),
-  _view(new QTableView),
+  _view(new MyTableView),
   _toolbar(new QToolBar),
   _info_dock(new InfoDockWidget)
 {
   _view->setModel(_sync_model);
   _view->setSelectionBehavior(QAbstractItemView::SelectRows);
-  _view->horizontalHeader()->setResizeMode(0, QHeaderView::Interactive);
-  _view->horizontalHeader()->setResizeMode(1, QHeaderView::ResizeToContents);
-  _view->horizontalHeader()->setResizeMode(2, QHeaderView::ResizeToContents);
+  QHeaderView* header = _view->horizontalHeader();
   _view->horizontalHeader()->setHighlightSections(false);
   this->setCentralWidget(_view);
   
