@@ -80,6 +80,7 @@ void NetworkServer::socket_disconnected()
 	     this, SLOT(read_incoming()));
   _socket->deleteLater();
   _socket = 0;
+  _current_files_list.clear();
   connect(_server, SIGNAL(newConnection()), this, SLOT(new_connection()));
   return;
 }
