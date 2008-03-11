@@ -15,8 +15,8 @@ NetworkServer::NetworkServer(QObject* parent) :
   QObject(parent),
   _server(0),
   _socket(0),
-  _packet_size(10*1024*1024),
-  _max_buffer_size(10*1024*1024),
+  _packet_size(100*1024),
+  _max_buffer_size(1024*1024),
   _stop(false),
   _quit(false)
 {
