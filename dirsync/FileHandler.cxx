@@ -22,6 +22,15 @@ FileHandler::FileHandler(const FileData &fd) :
   _isopen(false)
 {}
 
+FileHandler::~FileHandler()
+{
+  // Close file if open, remove temp file if it exists.
+  _file.close();
+  if( QFile::exists(get_temp_filename()) ){
+    QFile::remove(get_temp_filename());
+  }
+}
+
 
 void FileHandler::_load_file_data(const QString &full_path)
 {
@@ -36,6 +45,9 @@ void FileHandler::_load_file_data(const QString &full_path)
   _fd.acctime = buf.st_atime;
   _fd.modtime = buf.st_mtime;
   _fd.initialized = true;
+
+  cout << "Qt: " << hex << _fd.perms << "\nstat: " << buf.st_mode << dec << endl; 
+
   return;
 }
 
@@ -80,18 +92,20 @@ bool FileHandler::begin_file_write()
   if(_isopen) return false;
   _isopen = true;
  
-  _file.setFileName(_fd.filename);
   if(_fd.isdir) {
     QDir d;
     d.mkpath(_fd.filename);
 
-    struct utimbuf ubuf;
-    ubuf.modtime = _fd.modtime;
-    utime(qPrintable(_fd.filename), &ubuf);
+//     struct utimbuf ubuf;
+//     ubuf.modtime = _fd.modtime;
+//     utime(qPrintable(_fd.filename), &ubuf);
 
-    _file.setPermissions(_fd.perms);
+//     _file.setFileName(_fd.filename);
+//     _file.setPermissions(_fd.perms);
     return true;
   }
+
+  _file.setFileName(get_temp_filename());
 
   cout << "Writing file: " << qPrintable(_fd.filename) << endl;
   _file.open(QIODevice::WriteOnly);
@@ -108,6 +122,12 @@ void FileHandler::write_to_file(const QByteArray &buffer)
 void FileHandler::end_file_write()
 {
   _file.close();
+  if( !QFile::remove(_fd.filename) ){
+    cout << "Unable to remove old file: " << qPrintable(_fd.filename) << endl;
+    return;
+  }
+
+  _file.rename(_fd.filename);
 
   struct utimbuf ubuf;
   ubuf.modtime = _fd.modtime;
@@ -127,4 +147,18 @@ quint16 FileHandler::get_checksum()
   cs = qChecksum(_file.readAll(), _fd.size);
   _file.close();
   return cs;
+}
+
+QString FileHandler::get_temp_filename()
+{
+  QDir data_dir = QDir::home();
+  if( !data_dir.exists(".dirsync") ){
+    if( !data_dir.mkpath(".dirsync") ){
+      cout << "Could not create directory " << qPrintable(data_dir.absoluteFilePath(".dirsync/")) << endl;
+      return QString();
+    }
+  }
+
+  data_dir.cd(".dirsync");
+  return data_dir.absoluteFilePath("tempfile");
 }

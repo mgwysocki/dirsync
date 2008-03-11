@@ -14,9 +14,11 @@ Q_OBJECT
   FileHandler();
   FileHandler(const QString &);
   FileHandler(const FileData &);
+  ~FileHandler();
 
   static FileData get_fd_from_socket(QTcpSocket*);
   static void send_fd_to_socket(const FileData&, QTcpSocket*);
+  static QString get_temp_filename();
 
   bool begin_file_write();
   void write_to_file(const QByteArray &);
@@ -24,6 +26,7 @@ Q_OBJECT
 
   quint16 get_checksum();
   FileData& get_fd() {return _fd;}
+
 
  signals:
   void error(QString);
