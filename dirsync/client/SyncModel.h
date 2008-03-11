@@ -62,6 +62,7 @@ Q_OBJECT
 
   QVariant data(const QModelIndex &, int) const;
   QVariant headerData(int, Qt::Orientation, int ) const;
+  QModelIndex parent(const QModelIndex &) const {return QModelIndex();}
 
   void set_action(const QModelIndexList &, quint32);
   void set_sync_to_client(const QModelIndexList &);
@@ -77,13 +78,28 @@ Q_OBJECT
   void make_local_list();
   void reset();
 
+  qint64 get_size_to_send() {
+    qint64 total(0);
+    for(int i=0; i<_files_to_send.size(); i++)
+      total += _files_to_send[i].size;
+    return total;
+  }
+
+  qint64 get_size_to_get() {
+    qint64 total(0);
+    for(int i=0; i<_files_to_get.size(); i++)
+      total += _files_to_get[i].size;
+    return total;
+  }
+
  signals:
   void set_info(QString, QString);
   
  public slots:
   void set_remote_filelist(QList<FileData>);
   void save_sync_file();
-  void selection_changed(QItemSelection, QItemSelection);
+  //void selection_changed(QItemSelection, QItemSelection);
+  void selection_changed(const QModelIndex &, const QModelIndex);
 
  private:
   void make_changes_list();

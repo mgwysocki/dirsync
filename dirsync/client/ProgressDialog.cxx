@@ -4,7 +4,11 @@
 #include <QPushButton>
 
 ProgressDialog::ProgressDialog(QWidget* parent) :
-  QDialog(parent)
+  QDialog(parent),
+  _total_upload(0),
+  _total_uploaded(0),
+  _total_download(0),
+  _total_downloaded(0)
 {
   setModal(true);
   setSizeGripEnabled(true);
@@ -23,10 +27,11 @@ ProgressDialog::ProgressDialog(QWidget* parent) :
   setWindowTitle( tr("Sync Progress") );
 }
 
-void ProgressDialog::set_n_upload(int n) 
+void ProgressDialog::set_n_upload(qint64 n) 
 {
   if(n>0) {
-    _upload_bar.setRange(0, n);
+    _upload_bar.setRange(0, 100);
+    _total_upload = n;
     _upload_bar.setValue(0);
   } else {
     _upload_bar.setRange(0, 1);
@@ -35,10 +40,11 @@ void ProgressDialog::set_n_upload(int n)
   return;
 }
 
-void ProgressDialog::set_n_download(int n) 
+void ProgressDialog::set_n_download(qint64 n) 
 {
   if(n>0) {
-    _download_bar.setRange(0, n);
+    _download_bar.setRange(0, 100);
+    _total_download = n;
     _download_bar.setValue(0);
   } else {
     _download_bar.setRange(0, 1);

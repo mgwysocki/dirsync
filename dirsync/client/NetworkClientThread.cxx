@@ -269,6 +269,8 @@ bool NetworkClientThread::_send_files()
     QFile outfile(local_fd.filename);
     outfile.open(QIODevice::ReadOnly);
 
+    connect(_socket, SIGNAL(bytesWritten(qint64)), this, SIGNAL(bytesWritten(qint64)));
+
     quint16 running_sum(0);
     quint64 remaining_size(local_fd.size);
     quint32 blocksize(_packet_size);
@@ -284,6 +286,12 @@ bool NetworkClientThread::_send_files()
     }
     outfile.close();
 
+    cout << "Bytes To Write: " << _socket->bytesToWrite() << endl;
+    while(_socket->bytesToWrite()>0) {
+      _socket->waitForBytesWritten();
+      cout << "Bytes To Write: " << _socket->bytesToWrite() << endl;
+    }
+
     cout << "Running checksum: " << running_sum << endl;
     outfile.open(QIODevice::ReadOnly);
     cout << "Checksum: " << qChecksum( outfile.readAll(), local_fd.size ) << endl;
@@ -297,7 +305,8 @@ bool NetworkClientThread::_send_files()
       cout << "Wrong handshake! (" << handshake << ")" << endl;
       return false;
     }
-    emit increment_upload();
+    disconnect(_socket, SIGNAL(bytesWritten(qint64)), this, SIGNAL(bytesWritten(qint64)));
+    //emit increment_upload();
   }
   
   emit change_upload_status( QString("Upload complete.") );
@@ -339,7 +348,7 @@ bool NetworkClientThread::_get_files()
     
     if( !fh.begin_file_write() ) return false;
     if( fh.get_fd().isdir ) {
-      emit increment_download();
+      //emit increment_download();
       continue;
     }
 
@@ -367,12 +376,13 @@ bool NetworkClientThread::_get_files()
       remaining_size -= buffer.size();
       cout << "buffer size = " << buffer.size() << endl;
       fh.write_to_file(buffer);
+      emit bytesReceived(buffer.size());
       buffer.clear();
     }
 
     fh.end_file_write();
     buffer.clear();
-    emit increment_download();
+    //emit increment_download();
 
     cout << "Received filename: " << qPrintable(remote_fd.relative_filename)
 	 << " (" << remote_fd.size << " bytes)" << endl;

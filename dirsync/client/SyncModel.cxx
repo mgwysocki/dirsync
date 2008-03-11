@@ -243,8 +243,10 @@ QVariant SyncModel::data(const QModelIndex &index, int role = Qt::DisplayRole) c
   if(role != Qt::DisplayRole)
     return QVariant();
 
-  int c = index.column();
   int r = index.row();
+  if(r<0 || r>=sync_list.size()) return QVariant();
+
+  int c = index.column();
   if(c==0) {
     QString var(tr(" ") + sync_list[r].local.current_fd.relative_filename);
     if(sync_list[r].local.current_fd.isdir)
@@ -539,14 +541,15 @@ void SyncModel::reset()
   return;
 }
 
-void SyncModel::selection_changed(QItemSelection selected, QItemSelection deselected)
+void SyncModel::selection_changed(const QModelIndex &current, const QModelIndex)
 {
-  QModelIndex index;
-  QModelIndexList items = selected.indexes();
+  if(current.row() < sync_list.size() && current.row() >= 0) {
+    SyncData sd( sync_list[current.row()] );
+    std::pair<QString,QString> info = sd.get_info();
+    emit set_info(info.first, info.second);
 
-  index = items[0];
-  SyncData sd( sync_list[index.row()] );
-  std::pair<QString,QString> info = sd.get_info();
-  emit set_info(info.first, info.second);
+  } else {
+    emit set_info(QString(), QString());
+  }   
   return;
 }

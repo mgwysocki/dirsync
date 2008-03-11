@@ -31,8 +31,10 @@ MainWindow::MainWindow() :
   createActions();
   createMenus();
   
-  connect(_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), 
-	  _sync_model, SLOT(selection_changed(QItemSelection, QItemSelection)));
+//   connect(_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), 
+// 	  _sync_model, SLOT(selection_changed(QItemSelection, QItemSelection)));
+  connect(_view->selectionModel(), SIGNAL(currentRowChanged(QModelIndex, QModelIndex)), 
+	  _sync_model, SLOT(selection_changed(QModelIndex, QModelIndex)));
 
   connect(_sync_model, SIGNAL(set_info(QString, QString)),
 	  _info_dock, SLOT(set_info(QString, QString)));
@@ -101,12 +103,14 @@ void MainWindow::perform_sync()
   _net_thread.set_local_files_to_delete( _sync_model->get_local_files_to_delete() );
   
   ProgressDialog* pd = new ProgressDialog(this);
-  pd->set_n_upload( _sync_model->get_files_to_send().size() );
-  pd->set_n_download( _sync_model->get_files_to_get().size() );
+  pd->set_n_upload( _sync_model->get_size_to_send() );
+  pd->set_n_download( _sync_model->get_size_to_get() );
   connect(&_net_thread, SIGNAL(change_upload_status(QString)), pd, SLOT(set_upload_status(QString)));
-  connect(&_net_thread, SIGNAL(increment_upload()), pd, SLOT(increment_upload()));
+  //connect(&_net_thread, SIGNAL(increment_upload()), pd, SLOT(increment_upload()));
+  connect(&_net_thread, SIGNAL(bytesWritten(qint64)), pd, SLOT(increment_upload(qint64)));
+  connect(&_net_thread, SIGNAL(bytesReceived(qint64)), pd, SLOT(increment_download(qint64)));
   connect(&_net_thread, SIGNAL(change_download_status(QString)), pd, SLOT(set_download_status(QString)));
-  connect(&_net_thread, SIGNAL(increment_download()), pd, SLOT(increment_download()));
+  //connect(&_net_thread, SIGNAL(increment_download()), pd, SLOT(increment_download()));
   //connect(&_net_thread, SIGNAL(done()), pd, SLOT(accept()));
   pd->show();
 

@@ -51,6 +51,8 @@ Q_OBJECT
   void change_download_status(QString);
   void increment_upload();
   void increment_download();
+  void bytesWritten(qint64);
+  void bytesReceived(qint64);
 
  public slots:
   void wake_up();
