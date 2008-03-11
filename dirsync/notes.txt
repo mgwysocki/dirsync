@@ -1,0 +1,30 @@
+FEATURES TO ADD:
++ auto re-compare files after sync
++ save state of files to profile file after sync
++ make the "Cancel" button on the ProgressDialog do something
+
++ Add a refresh button?
++ Move low-level buttons to menubar
++ Add a button for "Do nothing"
++ Add a menuitem for Show/Hide synced files
++ Add bytes transferred and current rate to ProgressDialog
+
++ disable Perform Sync button if there are no actions
++ change ProgressDialog button to "Close" after transfer finishes
+
++ Use ".dirsync" on Linux, ~/Library... on Mac, and Application.../dirsync on Windows
+
+
+PREFERENCES
++ tempfile location
++ checkbox to override permissions
++ permissions for Mac/Linux files/directories
+
+
+PERMISSIONS
+It appears that on a Windows XP machine (at least with a single
+Administrator user) that the permissions are always r+w for everybody
+on the machine.  Not sure how to handle this... could give a
+preference that let's users choose to override permissions.
+
+

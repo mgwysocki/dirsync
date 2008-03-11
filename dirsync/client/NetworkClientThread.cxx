@@ -15,7 +15,7 @@ using namespace std;
 NetworkClientThread::NetworkClientThread(QObject* parent) :
   QThread(parent),
   _socket(0),
-  _packet_size(1024*1024),
+  _packet_size(100*1024),
   _mode( ClientMode::None ),
   _quit(false)
 {
@@ -220,7 +220,7 @@ void NetworkClientThread::_get_remote_filelist()
     }
     tcp >> fd;
     cout << "received info on " << qPrintable(fd.filename) 
-	 << ", " << fd.size << ", " << fd.modtime << endl;
+	 << ", " << fd.size << ", " << fd.modtime << ", " << hex << fd.perms << dec << endl;
     _remote_filelist.append(fd);
   }
   cout << "Received list of Remote Changed Files, size=" 
@@ -286,10 +286,8 @@ bool NetworkClientThread::_send_files()
     }
     outfile.close();
 
-    cout << "Bytes To Write: " << _socket->bytesToWrite() << endl;
     while(_socket->bytesToWrite()>0) {
       _socket->waitForBytesWritten();
-      cout << "Bytes To Write: " << _socket->bytesToWrite() << endl;
     }
 
     cout << "Running checksum: " << running_sum << endl;
@@ -371,10 +369,10 @@ bool NetworkClientThread::_get_files()
 	}
       }
 
-      cout << _socket->bytesAvailable() << " bytes available after wait" << endl;
+      //cout << _socket->bytesAvailable() << " bytes available after wait" << endl;
       buffer.append(_socket->read(blocksize));
       remaining_size -= buffer.size();
-      cout << "buffer size = " << buffer.size() << endl;
+      //cout << "buffer size = " << buffer.size() << endl;
       fh.write_to_file(buffer);
       emit bytesReceived(buffer.size());
       buffer.clear();
