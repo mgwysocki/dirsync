@@ -299,7 +299,7 @@ void NetworkServer::_receive_file(const FileData &client_fd)
   printf("Received filename: %s (%ld bytes)\n", 
 	 qPrintable(fd.relative_filename), (long unsigned int) fd.size);
 
-  cout << "Checksum: " << fh.get_checksum() << endl;
+  //cout << "Checksum: " << fh.get_checksum() << endl;
   tcp << HandShake::Acknowledge;
   return;
 }
