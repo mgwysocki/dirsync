@@ -122,7 +122,8 @@ void FileHandler::write_to_file(const QByteArray &buffer)
 void FileHandler::end_file_write()
 {
   _file.close();
-  if( !QFile::remove(_fd.filename) ){
+  _isopen = false;
+  if( QFile::exists(_fd.filename) && !QFile::remove(_fd.filename) ){
     cout << "Unable to remove old file: " << qPrintable(_fd.filename) << endl;
     return;
   }
@@ -134,7 +135,6 @@ void FileHandler::end_file_write()
   utime(qPrintable(_fd.filename), &ubuf);
 
   _file.setPermissions(_fd.perms);
-  _isopen = false;
   return;
 }
 
