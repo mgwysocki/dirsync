@@ -152,10 +152,11 @@ NewSyncDialog::NewSyncDialog(QWidget *parent)
   _profiles_label = new QLabel(tr("Profiles:"));
   _profiles_lv = new QListView;
   _profiles_lv->setModel(&_profile_reader);
+  _profiles_lv->setSelectionMode(QAbstractItemView::SingleSelection);
 
-  _go_button = new QPushButton(tr("Make Sync List"));
+  _go_button = new QPushButton(tr("Make Sync List"), this);
   _go_button->setDefault(true);
-  _go_button->setEnabled(false);
+  //_go_button->setEnabled(false);
 
   _new_profile_button = new QPushButton(tr("New Profile"));
   connect(_new_profile_button, SIGNAL(clicked()), this, SLOT(start_new_profile()));
@@ -166,12 +167,12 @@ NewSyncDialog::NewSyncDialog(QWidget *parent)
   _quit_button = new QPushButton(tr("Cancel"));
 
   buttonBox = new QDialogButtonBox;
-  buttonBox->addButton(_go_button, QDialogButtonBox::ActionRole);
+  buttonBox->addButton(_go_button, QDialogButtonBox::AcceptRole);
   buttonBox->addButton(_quit_button, QDialogButtonBox::RejectRole);
 
-  QDialogButtonBox* buttonBox2 = new QDialogButtonBox;
-  buttonBox2->addButton(_new_profile_button, QDialogButtonBox::ActionRole);
-  buttonBox2->addButton(_update_profile_button, QDialogButtonBox::ActionRole);
+  QHBoxLayout* buttonBox2 = new QHBoxLayout;
+  buttonBox2->addWidget(_new_profile_button);
+  buttonBox2->addWidget(_update_profile_button);
 
   connect(_host_lineedit, SIGNAL(textChanged(const QString &)),
 	  this, SLOT(enable_go_button()));
@@ -202,7 +203,7 @@ NewSyncDialog::NewSyncDialog(QWidget *parent)
   profile_layout->addWidget(_serverdir_label,    2, 0);
   profile_layout->addWidget(_serverdir_lineedit, 2, 1);
 
-  profile_layout->addWidget(buttonBox2,          3, 0, 1, 2);
+  profile_layout->addLayout(buttonBox2,          3, 0, 1, 2);
   profile_box->setLayout(profile_layout);
   main_layout->addWidget(profile_box);
 
@@ -217,11 +218,12 @@ NewSyncDialog::NewSyncDialog(QWidget *parent)
 
   this->resize(400,400);
 
-  connect(_profiles_lv->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)), 
+  connect(_profiles_lv->selectionModel(), 
+	  SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)), 
 	  this, SLOT(change_selected_profile(const QModelIndex &, const QModelIndex &)));
 
   // TEST SETUP
-  _host_lineedit->setText("Localhost");
+  _host_lineedit->setText("localhost");
   _port_lineedit->setText("52614");
   _clientdir_lineedit->setText("/home/mwysocki/testsync/");
   _serverdir_lineedit->setText("/home/mwysocki/testsync2/");
@@ -253,6 +255,7 @@ void NewSyncDialog::start_new_profile()
   _clientdir_lineedit->setEnabled(true);
   _serverdir_lineedit->setEnabled(true);
 
+  _profiles_lv->selectionModel()->clearSelection();  
   QModelIndex new_entry = _profile_reader.add_new_profile();
   QItemSelection selection(new_entry, new_entry);
   _profiles_lv->selectionModel()->select(selection, QItemSelectionModel::Select);
