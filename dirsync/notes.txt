@@ -2,6 +2,8 @@ FEATURES TO ADD:
 + auto re-compare files after sync
 + save state of files to profile file after sync
 + make the "Cancel" button on the ProgressDialog do something
++ make the Server able to run in the terminal
++ add an option to the Server for port number
 
 + Add a refresh button?
 + Move low-level buttons to menubar
