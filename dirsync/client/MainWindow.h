@@ -39,6 +39,7 @@ class MainWindow : public QMainWindow
   void set_to_server();
   void set_to_send();
   void set_to_get();
+  void set_to_no_action();
   void set_to_remote_delete();
   void set_to_local_delete();
   void set_remote_filelist(QList<FileData> fl);
@@ -68,6 +69,7 @@ class MainWindow : public QMainWindow
   QAction* _exit_act;
   QAction* _sync_to_client_act;
   QAction* _sync_to_server_act;
+  QAction* _no_act;
   QAction* _delete_remote_act;
   QAction* _delete_local_act;
   QAction* _send_act;
@@ -76,6 +78,7 @@ class MainWindow : public QMainWindow
   QAction* _about_qt_act;
 
   QMenu* _file_menu;
+  QMenu* _action_menu;
   QMenu* _help_menu;
 };
 

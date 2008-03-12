@@ -112,6 +112,7 @@ void MainWindow::perform_sync()
   connect(&_net_thread, SIGNAL(change_download_status(QString)), pd, SLOT(set_download_status(QString)));
   //connect(&_net_thread, SIGNAL(increment_download()), pd, SLOT(increment_download()));
   //connect(&_net_thread, SIGNAL(done()), pd, SLOT(accept()));
+  connect(&_net_thread, SIGNAL(done()), pd, SLOT(done()));
   pd->show();
 
   connect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
@@ -151,36 +152,42 @@ void MainWindow::createActions()
 
   _toolbar->addSeparator();
 
-  _sync_to_client_act = _toolbar->addAction("Sync to Client");
-  //_sync_to_client_act->setShortcut(tr("Ctrl+1"));
-  connect(_sync_to_client_act, SIGNAL(triggered()), this, SLOT(set_to_client()));
-  
-  _sync_to_server_act = _toolbar->addAction("Sync to Server");
+  QIcon left_arrow_icon("icons/left_arrow.png");
+  _sync_to_server_act = _toolbar->addAction(left_arrow_icon, "Sync to Server");
   //_sync_to_server_act->setShortcut(tr("Ctrl+1"));
   connect(_sync_to_server_act, SIGNAL(triggered()), this, SLOT(set_to_server()));
-  
 
+  QIcon no_icon("icons/no_symbol.png");
+  _no_act = _toolbar->addAction(no_icon, "Do Nothing");
+  //_no_act->setShortcut(tr("Ctrl+4"));
+  connect(_no_act, SIGNAL(triggered()), this, SLOT(set_to_no_action()));
+
+  QIcon right_arrow_icon("icons/right_arrow.png");
+  _sync_to_client_act = _toolbar->addAction(right_arrow_icon, "Sync to Client");
+  //_sync_to_client_act->setShortcut(tr("Ctrl+1"));
+  connect(_sync_to_client_act, SIGNAL(triggered()), this, SLOT(set_to_client()));  
+  
   _toolbar->addSeparator();
 
   _send_act = new QAction(tr("Send File to Server"), this);
   _send_act->setShortcut(tr("Ctrl+1"));
   connect(_send_act, SIGNAL(triggered()), this, SLOT(set_to_send()));
-  _toolbar->addAction(_send_act);
+  //_toolbar->addAction(_send_act);
 
   _get_act = new QAction(tr("Get File from Server"), this);
   _get_act->setShortcut(tr("Ctrl+2"));
   connect(_get_act, SIGNAL(triggered()), this, SLOT(set_to_get()));
-  _toolbar->addAction(_get_act);
+  //_toolbar->addAction(_get_act);
 
   _delete_remote_act = new QAction(tr("Delete File from Server"), this);
   _delete_remote_act->setShortcut(tr("Ctrl+3"));
   connect(_delete_remote_act, SIGNAL(triggered()), this, SLOT(set_to_remote_delete()));
-  _toolbar->addAction(_delete_remote_act);
+  //_toolbar->addAction(_delete_remote_act);
 
   _delete_local_act = new QAction(tr("Delete File from Client"), this);
   _delete_local_act->setShortcut(tr("Ctrl+4"));
   connect(_delete_local_act, SIGNAL(triggered()), this, SLOT(set_to_local_delete()));
-  _toolbar->addAction(_delete_local_act);
+  //_toolbar->addAction(_delete_local_act);
 
   _exit_act = new QAction(tr("E&xit"), this);
   _exit_act->setShortcut(tr("Ctrl+Q"));
@@ -222,6 +229,13 @@ void MainWindow::set_to_get()
   return;
 }
 
+void MainWindow::set_to_no_action()
+{
+  QModelIndexList ilist = _view->selectionModel()->selectedIndexes();
+  _sync_model->set_action(ilist, Action::None);
+  return;
+}
+
 void MainWindow::set_to_remote_delete()
 {
   QModelIndexList ilist = _view->selectionModel()->selectedIndexes();
@@ -240,14 +254,26 @@ void MainWindow::createMenus()
 {
   _file_menu = new QMenu(tr("&File"), this);
   _file_menu->addAction(_new_act);
+  _file_menu->addAction(_sync_act);
   _file_menu->addSeparator();
   _file_menu->addAction(_exit_act);
+
+  _action_menu = new QMenu(tr("&Action"), this);
+  _action_menu->addAction(_sync_to_client_act);
+  _action_menu->addAction(_sync_to_server_act);
+  _action_menu->addSeparator();
+  _action_menu->addAction(_send_act);
+  _action_menu->addAction(_get_act);
+  _action_menu->addAction(_delete_remote_act);
+  _action_menu->addAction(_delete_local_act);
+  _action_menu->addAction(_no_act);
 
   _help_menu = new QMenu(tr("&Help"), this);
   _help_menu->addAction(_about_act);
   _help_menu->addAction(_about_qt_act);
 
   menuBar()->addMenu(_file_menu);
+  menuBar()->addMenu(_action_menu);
   menuBar()->addMenu(_help_menu);
 }
 
