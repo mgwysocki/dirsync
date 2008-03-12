@@ -6,13 +6,10 @@ FEATURES TO ADD:
 + add an option to the Server for port number
 
 + Add a refresh button?
-+ Move low-level buttons to menubar
-+ Add a button for "Do nothing"
 + Add a menuitem for Show/Hide synced files
 + Add bytes transferred and current rate to ProgressDialog
 
 + disable Perform Sync button if there are no actions
-+ change ProgressDialog button to "Close" after transfer finishes
 
 + Use ".dirsync" on Linux, ~/Library... on Mac, and Application.../dirsync on Windows
 
