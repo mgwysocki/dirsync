@@ -6,6 +6,8 @@
 #include <QLabel>
 #include <iostream>
 
+class QPushButton;
+
 class ProgressDialog : public QDialog
 {
 Q_OBJECT
@@ -16,6 +18,8 @@ Q_OBJECT
   void set_n_download(qint64 n);
 
  public slots:
+  void done();
+
   void set_upload_status(QString text) {_upload_status.setText(text);}
   void set_download_status(QString text) {_download_status.setText(text);}
   void increment_upload() {_upload_bar.setValue( _upload_bar.value()+1 );}
@@ -36,6 +40,8 @@ Q_OBJECT
   QProgressBar _download_bar;
   QLabel _upload_status;
   QLabel _download_status;
+
+  QPushButton* _button;
 
   qint64 _total_upload;
   qint64 _total_uploaded;
