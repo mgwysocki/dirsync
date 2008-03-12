@@ -19,10 +19,10 @@ namespace Action {
   const int None = 6;
 
   const QString strings[7] = {QString("None"),
-			      QString("Copy to B"),
-			      QString("Copy to A"),
-			      QString("Delete from B"),
-			      QString("Delete from A"),
+			      QString("Copy Right"),
+			      QString("Copy Left"),
+			      QString("Delete from Right"),
+			      QString("Delete from Left"),
 			      QString("Unclear"),
 			      QString("None")};
 };
@@ -37,6 +37,9 @@ class SyncData
   ~SyncData() {}
 
   std::pair<QString,QString> get_info() const;
+
+  bool operator<(const SyncData &sd) const
+  { return (relative_filename < sd.relative_filename); }
 
   void determine_situation_first_time();
   void determine_situation();

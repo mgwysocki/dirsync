@@ -449,6 +449,8 @@ void SyncModel::make_changes_list()
     riter++;
   }
 
+  qStableSort( temp_sync_list );
+
   cout << temp_sync_list.size() << " files added to the sync list." << endl;
   beginInsertRows( QModelIndex(), 0, temp_sync_list.size()-1);
   sync_list = temp_sync_list;
