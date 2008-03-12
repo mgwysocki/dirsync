@@ -277,8 +277,8 @@ bool NetworkClientThread::_send_files()
     cout << "blocksize = " << blocksize << endl;
     while(remaining_size>0) {
       if(remaining_size<blocksize) blocksize = remaining_size;
-      cout << "remaining_size, block_size = " 
-	   << remaining_size << ", " << blocksize << endl;
+//       cout << "remaining_size, block_size = " 
+// 	   << remaining_size << ", " << blocksize << endl;
       QByteArray data( outfile.read(blocksize) );
       tcp << data;
       running_sum += qChecksum(data, data.length());
