@@ -92,6 +92,23 @@ void MainWindow::set_remote_filelist(QList<FileData> fl)
   return;
 }
 
+void MainWindow::refresh_lists()
+{
+  disconnect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
+  _sync_model->save_sync_file();
+
+  this->disable();
+  _sync_model->make_local_list();
+  connect(&_net_thread, SIGNAL(got_filelist(QList<FileData>)), 
+	  this, SLOT(set_remote_filelist(QList<FileData>)));
+  connect(&_net_thread, SIGNAL(done()), 
+	  this, SLOT(enable()));
+  connect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
+
+  _net_thread.set_mode(ClientMode::Reading);
+  _net_thread.wake_up();
+  return;
+}
 
 void MainWindow::perform_sync()
 {
@@ -115,7 +132,7 @@ void MainWindow::perform_sync()
   connect(&_net_thread, SIGNAL(done()), pd, SLOT(done()));
   pd->show();
 
-  connect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
+  //connect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
   _net_thread.set_mode(ClientMode::Syncing);
   _net_thread.wake_up();
   return;
@@ -149,6 +166,11 @@ void MainWindow::createActions()
   _sync_act = _toolbar->addAction(sync_icon, "&Perform Sync");
   _sync_act->setShortcut(tr("Ctrl+G"));
   connect(_sync_act, SIGNAL(triggered()), this, SLOT(perform_sync()));
+
+  QIcon refresh_icon("icons/refresh.png");
+  _refresh_act = _toolbar->addAction(refresh_icon, "&Refresh");
+  _refresh_act->setShortcut(tr("Ctrl+R"));
+  connect(_refresh_act, SIGNAL(triggered()), this, SLOT(refresh_lists()));
 
   _toolbar->addSeparator();
 
@@ -254,6 +276,7 @@ void MainWindow::createMenus()
 {
   _file_menu = new QMenu(tr("&File"), this);
   _file_menu->addAction(_new_act);
+  _file_menu->addAction(_refresh_act);
   _file_menu->addAction(_sync_act);
   _file_menu->addSeparator();
   _file_menu->addAction(_exit_act);

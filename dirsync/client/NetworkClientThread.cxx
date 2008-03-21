@@ -21,24 +21,6 @@ NetworkClientThread::NetworkClientThread(QObject* parent) :
 {
   qRegisterMetaType< QList<FileData> >("QList<FileData>");
   qRegisterMetaType< QIODevice::OpenMode >("OpenMode");
-
-//   QString qstr("0123456789");
-//   cout << "qstr.size(): " << qstr.size() << endl;
-
-//   QFile file("file.xxx");
-//   file.open(QIODevice::WriteOnly);
-//   QDataStream out(&file);
-//   out.setVersion(QDataStream::Qt_4_0);
-//   out << qstr;
-//   file.close();
-
-//   file.open(QIODevice::ReadOnly);
-//   QDataStream in(&file);
-
-//   // Read and check the header
-//   quint32 magic;
-//   in >> magic;
-//   cout << "datastream size: " << magic << endl;
 }
 
 NetworkClientThread::~NetworkClientThread()
@@ -132,15 +114,25 @@ void NetworkClientThread::_disconnect_socket()
 void NetworkClientThread::run()
 {
   cout << "NetworkClientThread::run()" << endl;
+  if(!_socket) _socket = new QTcpSocket;
   while (!_quit) {
     QMutexLocker locker(&_mutex);
     cout << "mode: " << _mode << endl;
     switch(_mode) {
     case ClientMode::Reading:
-      if( _connect_socket() ){
-	_get_remote_filelist();
-	emit got_filelist(_remote_filelist);
+      cout << "server: "  << qPrintable(_server) << endl;
+// 	   << "  peeraddress: " << qPrintable(_socket->peerAddress().toString()) << endl;
+      if( _socket->state() != QAbstractSocket::ConnectedState || 
+	  _server != _socket->peerAddress().toString() ){
+	cout << "here1" << endl;
+	if( !_connect_socket() ){
+	  cout << "Failed to connect to host " << qPrintable(_server) << endl;
+	  break;
+	}
       }
+      cout << "here1" << endl;
+      _get_remote_filelist();
+      emit got_filelist(_remote_filelist);
       break;
 
     case ClientMode::Syncing:
@@ -177,6 +169,7 @@ void NetworkClientThread::run()
 void NetworkClientThread::_get_remote_filelist()
 {
   cout << "NetworkClientThread::_get_remote_filelist()" << endl;
+  _remote_filelist.clear();
   quint32 handshake(0);
   QDataStream tcp(_socket);
   tcp.setVersion(QDataStream::Qt_4_0);
@@ -201,7 +194,6 @@ void NetworkClientThread::_get_remote_filelist()
   tcp >> handshake;
   if(handshake != HandShake::SendingChangesList) return;
 
-  _remote_filelist.clear();
   quint32 nfiles(0);
   if(_socket->bytesAvailable()==0) _socket->waitForReadyRead();
   tcp >> nfiles;

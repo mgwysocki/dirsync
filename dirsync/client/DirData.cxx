@@ -41,6 +41,7 @@ void DirData::generate_file_agents()
   //  make FileAgent
   //  mark as Deleted
   //
+  file_agents.clear();
   QList<FileData>::const_iterator cfiter = _current_files.begin();
   while(cfiter != _current_files.end()) {
 

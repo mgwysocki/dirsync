@@ -33,6 +33,7 @@ class MainWindow : public QMainWindow
  private slots:
   void new_sync();
   void perform_sync();
+  void refresh_lists();
   void about();
   void display_error(const QString &message);
   void set_to_client();
@@ -48,13 +49,10 @@ class MainWindow : public QMainWindow
   void delete_local_file(const FileData &);
 
   NetworkClientThread _net_thread;
-
-  //DirComparator _local_changes;
-  //DirComparator _remote_changes;
+  SyncModel* _sync_model;
   QString _local_dir;
   QString _remote_dir;
 
-  SyncModel* _sync_model;
 
   void createActions();
   void createMenus();
@@ -66,6 +64,7 @@ class MainWindow : public QMainWindow
 
   QAction* _new_act;
   QAction* _sync_act;
+  QAction* _refresh_act;
   QAction* _exit_act;
   QAction* _sync_to_client_act;
   QAction* _sync_to_server_act;
