@@ -13,8 +13,9 @@ using namespace std;
 //#include "../protocol.h"
 #include "ServerDialog.h"
 
-ServerDialog::ServerDialog(QWidget *parent)
-  : QDialog(parent)
+ServerDialog::ServerDialog(int port, QWidget *parent) : 
+  QDialog(parent)
+  //  _net_thread(port)
 {
   _status_label = new QLabel;
   _quit_button = new QPushButton(tr("Quit"));
@@ -22,7 +23,7 @@ ServerDialog::ServerDialog(QWidget *parent)
 
   _status_label->setText(tr("The server is running on port %1.\n"
 			    "Run the DirSync Client now.")
-			 .arg(52614));
+			 .arg(port));
 
   connect(_quit_button, SIGNAL(clicked()), this, SLOT(close()));
 
@@ -36,6 +37,6 @@ ServerDialog::ServerDialog(QWidget *parent)
   mainLayout->addLayout(buttonLayout);
   setLayout(mainLayout);
 
-  this->setWindowTitle(tr("DirSync ServerDialog"));
+  this->setWindowTitle(tr("DirSync Server"));
   //_net_thread.start();
 }

@@ -12,7 +12,7 @@ class NetworkServerThread : public QThread
 Q_OBJECT
 
  public:
-  NetworkServerThread(QObject* parent = 0);
+  NetworkServerThread(int port, QObject* parent = 0);
   ~NetworkServerThread();
 
   void reset_server();
@@ -28,6 +28,7 @@ Q_OBJECT
   NetworkServer* _netserver;
   QMutex _mutex;
   QWaitCondition _cond;
+  int _port;
   bool _stop;
   bool _quit;
 };

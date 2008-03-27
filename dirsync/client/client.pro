@@ -4,6 +4,7 @@ TARGET = client
 OBJECTS_DIR = build
 MOC_DIR = $$OBJECTS_DIR
 
+CONFIG += qt thread debug
 
 HEADERS       = ../FileData.h \
                 ../FileHandler.h \

@@ -11,10 +11,11 @@ using namespace std;
 #include "../protocol.h"
 #include "NetworkServer.h"
 
-NetworkServer::NetworkServer(QObject* parent) :
+NetworkServer::NetworkServer(int port, QObject* parent) :
   QObject(parent),
   _server(0),
   _socket(0),
+  _port(port),
   _packet_size(100*1024),
   _max_buffer_size(1024*1024),
   _stop(false),
@@ -22,7 +23,7 @@ NetworkServer::NetworkServer(QObject* parent) :
 {
   _mutex.lock();
   _server = new QTcpServer;
-  if (!_server->listen(QHostAddress::Any, 52614)) {
+  if (!_server->listen(QHostAddress::Any, _port)) {
     emit error(tr("Unable to start the server: %1.").arg(_server->errorString()));
     cout << "Unable to start the server: " << qPrintable(_server->errorString()) << endl;
   }

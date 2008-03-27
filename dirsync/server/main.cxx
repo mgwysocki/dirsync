@@ -22,13 +22,36 @@
 ****************************************************************************/
 
 #include <QApplication>
-
+#include <iostream>
 #include "ServerDialog.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-    ServerDialog server;
-    server.show();
-    return server.exec();
+  QApplication app(argc, argv);
+  
+  bool nogui(false);
+  int port(52614);
+
+  for(int i=0; i<app.arguments().size(); i++) {
+    QString arg = app.arguments().at(i);
+    if(arg == QString("-nw")) 
+      nogui = true;
+    else if(arg == QString("-p")) {
+      if( i<app.arguments().size()-1 ) {
+	port = app.arguments().at(i+1).toInt();
+      } else {
+	std::cerr << "No port number following option -p" << std::endl;
+	return 2;
+      }
+    }
+  }
+
+  ServerDialog* server;
+  if(!nogui) {
+    server = new ServerDialog(port);
+    server->show();
+  }
+
+  NetworkServerThread _net_thread(port);
+  return app.exec();
 }

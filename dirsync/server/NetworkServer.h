@@ -12,7 +12,7 @@ class NetworkServer : public QObject
 Q_OBJECT
 
  public:
-  NetworkServer(QObject* parent = 0);
+  NetworkServer(int port, QObject* parent = 0);
   ~NetworkServer();
 
  signals:
@@ -35,6 +35,7 @@ Q_OBJECT
 
   QTcpServer* _server;
   QTcpSocket* _socket;
+  int _port;
   quint32 _packet_size;
   quint32 _block_size;
   QString _dir;

@@ -4,9 +4,10 @@
 #include <iostream>
 using namespace std;
 
-NetworkServerThread::NetworkServerThread(QObject* parent) :
+NetworkServerThread::NetworkServerThread(int port, QObject* parent) :
   QThread(parent),
   _netserver(0),
+  _port(port),
   _stop(true),
   _quit(false)
 {
@@ -29,7 +30,7 @@ void NetworkServerThread::run()
 {
   cout << "NetworkServerThread::run()" << endl;
   _mutex.lock();
-  _netserver = new NetworkServer;
+  _netserver = new NetworkServer(_port);
   _mutex.unlock();
 
   exec();
