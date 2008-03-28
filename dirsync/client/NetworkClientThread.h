@@ -60,7 +60,7 @@ Q_OBJECT
  private:
   bool _connect_socket();
   void _disconnect_socket();
-  void _get_remote_filelist();
+  bool _get_remote_filelist();
   bool _send_files();
   bool _get_files();
   bool _delete_remote_files();

@@ -29,6 +29,7 @@ class MainWindow : public QMainWindow
     return;
   }
   void disable() {setDisabled(true); return;}
+  void disconnect_signals();
 
  private slots:
   void new_sync();

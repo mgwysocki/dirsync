@@ -9,6 +9,7 @@ CONFIG += qt thread debug
 HEADERS       = ../FileData.h \
                 ../FileHandler.h \
                 ../FileAgent.h \
+                ../Preferences.h \
                 ProgressDialog.h \
                 SaveFile.h \
                 DirData.h \
@@ -22,6 +23,7 @@ HEADERS       = ../FileData.h \
 SOURCES       = ../FileData.cxx \
                 ../FileHandler.cxx \
                 ../FileAgent.cxx \
+                ../Preferences.cxx \
                 ProgressDialog.cxx \
                 SaveFile.cxx \
                 DirData.cxx \

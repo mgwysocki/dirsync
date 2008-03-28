@@ -94,7 +94,6 @@ void MainWindow::set_remote_filelist(QList<FileData> fl)
 
 void MainWindow::refresh_lists()
 {
-  disconnect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
   _sync_model->save_sync_file();
 
   this->disable();
@@ -102,11 +101,24 @@ void MainWindow::refresh_lists()
   connect(&_net_thread, SIGNAL(got_filelist(QList<FileData>)), 
 	  this, SLOT(set_remote_filelist(QList<FileData>)));
   connect(&_net_thread, SIGNAL(done()), 
-	  this, SLOT(enable()));
+	  this, SLOT(disconnect_signals()));
   connect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
 
   _net_thread.set_mode(ClientMode::Reading);
   _net_thread.wake_up();
+  return;
+}
+
+void MainWindow::disconnect_signals()
+{
+  this->enable();
+  disconnect(&_net_thread, SIGNAL(got_filelist(QList<FileData>)), 
+	     this, SLOT(set_remote_filelist(QList<FileData>)));
+  disconnect(&_net_thread, SIGNAL(done()), 
+	     this, SLOT(enable()));
+  disconnect(&_net_thread, SIGNAL(success()), _sync_model, SLOT(save_sync_file()));
+
+  disconnect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
   return;
 }
 
@@ -123,16 +135,14 @@ void MainWindow::perform_sync()
   pd->set_n_upload( _sync_model->get_size_to_send() );
   pd->set_n_download( _sync_model->get_size_to_get() );
   connect(&_net_thread, SIGNAL(change_upload_status(QString)), pd, SLOT(set_upload_status(QString)));
-  //connect(&_net_thread, SIGNAL(increment_upload()), pd, SLOT(increment_upload()));
+  connect(&_net_thread, SIGNAL(change_download_status(QString)), pd, SLOT(set_download_status(QString)));
   connect(&_net_thread, SIGNAL(bytesWritten(qint64)), pd, SLOT(increment_upload(qint64)));
   connect(&_net_thread, SIGNAL(bytesReceived(qint64)), pd, SLOT(increment_download(qint64)));
-  connect(&_net_thread, SIGNAL(change_download_status(QString)), pd, SLOT(set_download_status(QString)));
-  //connect(&_net_thread, SIGNAL(increment_download()), pd, SLOT(increment_download()));
-  //connect(&_net_thread, SIGNAL(done()), pd, SLOT(accept()));
   connect(&_net_thread, SIGNAL(done()), pd, SLOT(done()));
   pd->show();
 
-  //connect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
+  connect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
+  connect(&_net_thread, SIGNAL(done()), this, SLOT(disconnect_signals()));
   _net_thread.set_mode(ClientMode::Syncing);
   _net_thread.wake_up();
   return;

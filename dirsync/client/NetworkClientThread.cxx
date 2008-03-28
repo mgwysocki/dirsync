@@ -119,20 +119,18 @@ void NetworkClientThread::run()
     QMutexLocker locker(&_mutex);
     cout << "mode: " << _mode << endl;
     switch(_mode) {
+
     case ClientMode::Reading:
-      cout << "server: "  << qPrintable(_server) << endl;
-// 	   << "  peeraddress: " << qPrintable(_socket->peerAddress().toString()) << endl;
       if( _socket->state() != QAbstractSocket::ConnectedState || 
-	  _server != _socket->peerAddress().toString() ){
-	cout << "here1" << endl;
+	  _server != _socket->peerName() ){
 	if( !_connect_socket() ){
 	  cout << "Failed to connect to host " << qPrintable(_server) << endl;
 	  break;
 	}
       }
-      cout << "here1" << endl;
-      _get_remote_filelist();
-      emit got_filelist(_remote_filelist);
+
+      if( _get_remote_filelist() )
+	emit got_filelist(_remote_filelist);
       break;
 
     case ClientMode::Syncing:
@@ -166,7 +164,7 @@ void NetworkClientThread::run()
 }
 
 
-void NetworkClientThread::_get_remote_filelist()
+bool NetworkClientThread::_get_remote_filelist()
 {
   cout << "NetworkClientThread::_get_remote_filelist()" << endl;
   _remote_filelist.clear();
@@ -185,14 +183,14 @@ void NetworkClientThread::_get_remote_filelist()
   tcp << HandShake::SetDirectory << _server_dir;
   _socket->waitForReadyRead();
   tcp >> handshake;
-  if(handshake != HandShake::Acknowledge) return;
+  if(handshake != HandShake::Acknowledge) return false;
   cout << "Received Acknowledge" << endl;
 
   cout << "Requesting List of Remote Changes..." << endl;
   tcp << HandShake::RequestChangesList;
   _socket->waitForReadyRead();
   tcp >> handshake;
-  if(handshake != HandShake::SendingChangesList) return;
+  if(handshake != HandShake::SendingChangesList) return false;
 
   quint32 nfiles(0);
   if(_socket->bytesAvailable()==0) _socket->waitForReadyRead();
@@ -207,7 +205,7 @@ void NetworkClientThread::_get_remote_filelist()
     while(_socket->bytesAvailable() < size ){
       if(!_socket->waitForReadyRead(10*1000)) {
 	cout << "_socket->waitForReadyRead() Timed Out!!!" << endl;
-	return;
+	return false;
       }
     }
     tcp >> fd;
@@ -218,7 +216,7 @@ void NetworkClientThread::_get_remote_filelist()
   cout << "Received list of Remote Changed Files, size=" 
        << _remote_filelist.size() << endl;
 
-  return;
+  return true;
 }
 
 bool NetworkClientThread::_send_files()

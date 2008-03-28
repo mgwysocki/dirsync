@@ -1,4 +1,5 @@
 #include "FileHandler.h"
+#include "Preferences.h"
 
 #include <QTcpSocket>
 
@@ -6,6 +7,8 @@
 #include <utime.h>
 #include <iostream>
 using namespace std;
+
+bool FileHandler::_override_perms(false);
 
 FileHandler::FileHandler() :
   _isopen(false)
@@ -101,7 +104,6 @@ bool FileHandler::begin_file_write()
 //     utime(qPrintable(_fd.filename), &ubuf);
 
 //     _file.setFileName(_fd.filename);
-//     _file.setPermissions(_fd.perms);
     return true;
   }
 
@@ -134,7 +136,7 @@ void FileHandler::end_file_write()
   ubuf.modtime = _fd.modtime;
   utime(qPrintable(_fd.filename), &ubuf);
 
-  _file.setPermissions(_fd.perms);
+  if(_override_perms) _file.setPermissions(_fd.perms);
   return;
 }
 
@@ -151,14 +153,6 @@ quint16 FileHandler::get_checksum()
 
 QString FileHandler::get_temp_filename()
 {
-  QDir data_dir = QDir::home();
-  if( !data_dir.exists(".dirsync") ){
-    if( !data_dir.mkpath(".dirsync") ){
-      cout << "Could not create directory " << qPrintable(data_dir.absoluteFilePath(".dirsync/")) << endl;
-      return QString();
-    }
-  }
-
-  data_dir.cd(".dirsync");
+  QDir data_dir( Preferences::get_instance()->get_temp_dir() );
   return data_dir.absoluteFilePath("tempfile");
 }
