@@ -4,7 +4,7 @@ TARGET = server
 OBJECTS_DIR = build
 MOC_DIR = $$OBJECTS_DIR
 
-CONFIG += qt thread debug
+CONFIG += qt thread
 
 HEADERS       = ../FileData.h \
                 ../FileHandler.h \
