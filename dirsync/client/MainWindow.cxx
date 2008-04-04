@@ -201,6 +201,11 @@ void MainWindow::createActions()
   
   _toolbar->addSeparator();
 
+  _diff_act = new QAction(tr("Hide Files That Differ"), this);
+  //_diff_act->setShortcut(tr("Ctrl+1"));
+  connect(_diff_act, SIGNAL(triggered()), this, SLOT(toggle_show_diff()));
+  _toolbar->addAction(_diff_act);
+
   _send_act = new QAction(tr("Send File to Server"), this);
   _send_act->setShortcut(tr("Ctrl+1"));
   connect(_send_act, SIGNAL(triggered()), this, SLOT(set_to_send()));
@@ -315,4 +320,16 @@ void MainWindow::display_error(const QString &message)
   cout << "MainWindow::display_error - " << qPrintable(message) << endl;
   QMessageBox::information(this, tr("DirSync Client"), message);
   return;
+}
+
+void MainWindow::toggle_show_diff()
+{
+  bool diff_only_old = _sync_model->get_diff_only();
+  if(diff_only_old) {
+    _sync_model->set_diff_only(false);
+    _diff_act->setText("Hide Files That Are Synced");
+  } else {
+    _sync_model->set_diff_only(true);
+    _diff_act->setText("Show Files That Are Synced");
+  }
 }

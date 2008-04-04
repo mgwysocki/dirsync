@@ -81,6 +81,8 @@ Q_OBJECT
   void make_local_list();
   void reset();
 
+  bool get_diff_only() const {return _diff_only;}
+
   qint64 get_size_to_send() {
     qint64 total(0);
     for(int i=0; i<_files_to_send.size(); i++)
@@ -103,6 +105,7 @@ Q_OBJECT
   void save_sync_file();
   //void selection_changed(QItemSelection, QItemSelection);
   void selection_changed(const QModelIndex &, const QModelIndex);
+  void set_diff_only(const bool);
 
  private:
   void make_changes_list();

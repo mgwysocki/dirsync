@@ -334,7 +334,7 @@ void SyncModel::set_sync_to_server(const QModelIndexList &ilist)
     else
       sync_list[row] = sd;
 
-    emit dataChanged(index(row, 0), index(row, 2));
+    emit dataChanged(index(row, 0), index(row, columnCount(QModelIndex())));
   }
   return;
 }
@@ -577,6 +577,26 @@ void SyncModel::_generate_diff_list()
     SyncData sd( sync_list[r] );
     if( sd.remote.current_fd != sd.local.current_fd )
       diff_list.append( &sync_list[r] );
+  }
+  return;
+}
+
+void SyncModel::set_diff_only(const bool b)
+{
+  cout << "SyncModel::set_diff_only(" << b << ")" << endl;
+  if(_diff_only == b) return;
+  _diff_only = b;
+  //this->reset();
+
+  if(_diff_only) {
+    emit dataChanged(index(0, 0), index(diff_list.size()-1, columnCount(QModelIndex())));
+    beginRemoveRows( QModelIndex(), diff_list.size(), sync_list.size()-1 );
+    endRemoveRows();
+
+  } else {
+    emit dataChanged(index(0, 0), index(diff_list.size()-1, columnCount(QModelIndex())));
+    beginInsertRows( QModelIndex(), diff_list.size(), sync_list.size()-1 );
+    endInsertRows();
   }
   return;
 }
