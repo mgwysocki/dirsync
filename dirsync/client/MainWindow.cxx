@@ -95,6 +95,7 @@ void MainWindow::set_remote_filelist(QList<FileData> fl)
 void MainWindow::refresh_lists()
 {
   _sync_model->save_sync_file();
+  _sync_model->reset();
 
   this->disable();
   _sync_model->make_local_list();
