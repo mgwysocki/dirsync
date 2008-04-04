@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+  <file>icons/add-file-48x48.png</file>
+  <file>icons/left_arrow.png</file>
+  <file>icons/no_symbol.png</file>
+  <file>icons/refresh.png</file>
+  <file>icons/right_arrow.png</file>
+  <file>icons/synchronize-48x48.png</file>
+</qresource>
+</RCC>

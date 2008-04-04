@@ -5,6 +5,7 @@ OBJECTS_DIR = build
 MOC_DIR = $$OBJECTS_DIR
 
 CONFIG += qt thread
+RESOURCES += icons.qrc
 
 HEADERS       = ../FileData.h \
                 ../FileHandler.h \

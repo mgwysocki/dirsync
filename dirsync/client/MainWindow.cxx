@@ -167,34 +167,34 @@ void MainWindow::about()
 
 void MainWindow::createActions()
 {
-  QIcon new_icon("icons/add-file-48x48.png");
+  QIcon new_icon(":/icons/add-file-48x48.png");
   _new_act = _toolbar->addAction(new_icon, "&New Sync");
   _new_act->setShortcut(tr("Ctrl+N"));
   connect(_new_act, SIGNAL(triggered()), this, SLOT(new_sync()));
 
-  QIcon sync_icon("icons/synchronize-48x48.png");
+  QIcon sync_icon(":/icons/synchronize-48x48.png");
   _sync_act = _toolbar->addAction(sync_icon, "&Perform Sync");
   _sync_act->setShortcut(tr("Ctrl+G"));
   connect(_sync_act, SIGNAL(triggered()), this, SLOT(perform_sync()));
 
-  QIcon refresh_icon("icons/refresh.png");
+  QIcon refresh_icon(":/icons/refresh.png");
   _refresh_act = _toolbar->addAction(refresh_icon, "&Refresh");
   _refresh_act->setShortcut(tr("Ctrl+R"));
   connect(_refresh_act, SIGNAL(triggered()), this, SLOT(refresh_lists()));
 
   _toolbar->addSeparator();
 
-  QIcon left_arrow_icon("icons/left_arrow.png");
+  QIcon left_arrow_icon(":/icons/left_arrow.png");
   _sync_to_server_act = _toolbar->addAction(left_arrow_icon, "Sync to Server");
   //_sync_to_server_act->setShortcut(tr("Ctrl+1"));
   connect(_sync_to_server_act, SIGNAL(triggered()), this, SLOT(set_to_server()));
 
-  QIcon no_icon("icons/no_symbol.png");
+  QIcon no_icon(":/icons/no_symbol.png");
   _no_act = _toolbar->addAction(no_icon, "Do Nothing");
   //_no_act->setShortcut(tr("Ctrl+4"));
   connect(_no_act, SIGNAL(triggered()), this, SLOT(set_to_no_action()));
 
-  QIcon right_arrow_icon("icons/right_arrow.png");
+  QIcon right_arrow_icon(":/icons/right_arrow.png");
   _sync_to_client_act = _toolbar->addAction(right_arrow_icon, "Sync to Client");
   //_sync_to_client_act->setShortcut(tr("Ctrl+1"));
   connect(_sync_to_client_act, SIGNAL(triggered()), this, SLOT(set_to_client()));  
