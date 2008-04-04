@@ -398,8 +398,8 @@ void SyncModel::make_changes_list()
   // Clear the sync list
   if(sync_list.size() > 0) {
     beginRemoveRows( QModelIndex(), 0, rowCount(QModelIndex())-1 );
-    sync_list.clear();
     diff_list.clear();
+    sync_list.clear();
     endRemoveRows();
   }
 
@@ -464,8 +464,10 @@ void SyncModel::make_changes_list()
   cout << temp_sync_list.size() << " files added to the sync list." << endl;
   sync_list = temp_sync_list;
   _generate_diff_list();
-  beginInsertRows( QModelIndex(), 0, rowCount(QModelIndex())-1);
-  endInsertRows();
+  if(rowCount(QModelIndex())>0) {
+    beginInsertRows( QModelIndex(), 0, rowCount(QModelIndex())-1);
+    endInsertRows();
+  }
   return;
 }
 
@@ -573,6 +575,7 @@ void SyncModel::selection_changed(const QModelIndex &current, const QModelIndex)
 
 void SyncModel::_generate_diff_list()
 {
+  diff_list.clear();
   for(int r=0; r<sync_list.size(); r++) {
     SyncData sd( sync_list[r] );
     if( sd.remote.current_fd != sd.local.current_fd )
@@ -589,14 +592,17 @@ void SyncModel::set_diff_only(const bool b)
   //this->reset();
 
   if(_diff_only) {
-    emit dataChanged(index(0, 0), index(diff_list.size()-1, columnCount(QModelIndex())));
-    beginRemoveRows( QModelIndex(), diff_list.size(), sync_list.size()-1 );
-    endRemoveRows();
-
+    if(diff_list.size()>0) emit dataChanged(index(0, 0), index(diff_list.size()-1, columnCount(QModelIndex())));
+    if(sync_list.size()>0 && diff_list.size()<sync_list.size()) {
+      beginRemoveRows( QModelIndex(), diff_list.size(), sync_list.size()-1 );
+      endRemoveRows();
+    }
   } else {
-    emit dataChanged(index(0, 0), index(diff_list.size()-1, columnCount(QModelIndex())));
-    beginInsertRows( QModelIndex(), diff_list.size(), sync_list.size()-1 );
-    endInsertRows();
+    if(diff_list.size()>0) emit dataChanged(index(0, 0), index(diff_list.size()-1, columnCount(QModelIndex())));
+    if(sync_list.size()>0 && diff_list.size()<sync_list.size()) {
+      beginInsertRows( QModelIndex(), diff_list.size(), sync_list.size()-1 );
+      endInsertRows();
+    }
   }
   return;
 }
