@@ -1,7 +1,6 @@
 NEEDED FOR USE:
-+ Save state of files to profile file after sync
-+ Add a menuitem for Show/Hide synced files
-
++ Save state of files to profile after sync
++ Add a preferences dialog
 
 FEATURES TO ADD:
 + make the "Cancel" button on the ProgressDialog do something
