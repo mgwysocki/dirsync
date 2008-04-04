@@ -1,11 +1,13 @@
+NEEDED FOR USE:
++ Save state of files to profile file after sync
++ Add a menuitem for Show/Hide synced files
+
+
 FEATURES TO ADD:
-+ auto re-compare files after sync
-+ save state of files to profile file after sync
 + make the "Cancel" button on the ProgressDialog do something
 ? make the Server able to run in the terminal
 + add an TextEdit to the Server for port number
 
-+ Add a menuitem for Show/Hide synced files
 + Add bytes transferred and current rate to ProgressDialog
 
 + disable Perform Sync button if there are no actions

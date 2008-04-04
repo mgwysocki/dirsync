@@ -235,6 +235,7 @@ std::pair<QString,QString> SyncData::get_info() const
 //
 SyncModel::SyncModel() :
   _loaded_previous_state(false),
+  _diff_only(false),
   changes_compiled(false)
 {}
 
@@ -245,20 +246,22 @@ QVariant SyncModel::data(const QModelIndex &index, int role = Qt::DisplayRole) c
 
   int r = index.row();
   if(r<0 || r>=sync_list.size()) return QVariant();
+  if(_diff_only && r>=diff_list.size()) return QVariant();
 
   int c = index.column();
+  SyncData sd = _diff_only ? *diff_list[r] : sync_list[r];
   if(c==0) {
-    QString var(tr(" ") + sync_list[r].local.current_fd.relative_filename);
-    if(sync_list[r].local.current_fd.isdir)
+    QString var(tr(" ") + sd.local.current_fd.relative_filename);
+    if(sd.local.current_fd.isdir)
       var += tr("/");
     return  QVariant(var);
   } else if(c==1) {
-    return QVariant(sync_list[r].situ);
+    return QVariant(sd.situ);
   } else if(c==2) {
-    return QVariant(Action::strings[ sync_list[r].action ]);
+    return QVariant(Action::strings[ sd.action ]);
   } else if(c==3) {
-    QString var(tr(" ") + sync_list[r].remote.current_fd.relative_filename);
-    if(sync_list[r].remote.current_fd.isdir)
+    QString var(tr(" ") + sd.remote.current_fd.relative_filename);
+    if(sd.remote.current_fd.isdir)
       var += tr("/");
     return  QVariant(var);
   }
@@ -286,7 +289,11 @@ void SyncModel::set_action(const QModelIndexList &ilist, quint32 action)
 {
   for(int i=0; i<ilist.size(); i++) {
     int row = ilist[i].row();
-    sync_list[row].action = action;
+    if(_diff_only)
+      diff_list[row]->action = action;
+    else
+      sync_list[row].action = action;
+
     emit dataChanged(index(row, 0), index(row, 2));
   }
   return;
@@ -296,12 +303,17 @@ void SyncModel::set_sync_to_client(const QModelIndexList &ilist)
 {
   for(int i=0; i<ilist.size(); i++) {
     int row = ilist[i].row();
-    SyncData sd = sync_list[row];
+    SyncData sd = _diff_only ? *diff_list[row] : sync_list[row];
     if(sd.local.deleted || !sd.local.current_fd.initialized)
       sd.action = Action::DeleteFromServer;
     else
       sd.action = Action::SendToServer;
-    sync_list[row] = sd;
+
+    if(_diff_only)      
+      *diff_list[row] = sd;
+    else
+      sync_list[row] = sd;
+
     emit dataChanged(index(row, 0), index(row, 2));
   }
   return;
@@ -311,12 +323,17 @@ void SyncModel::set_sync_to_server(const QModelIndexList &ilist)
 {
   for(int i=0; i<ilist.size(); i++) {
     int row = ilist[i].row();
-    SyncData sd = sync_list[row];
+    SyncData sd = _diff_only ? *diff_list[row] : sync_list[row];
     if(sd.remote.deleted || !sd.remote.current_fd.initialized)
       sd.action = Action::DeleteFromClient;
     else
       sd.action = Action::GetFromServer;
-    sync_list[row] = sd;
+
+    if(_diff_only)      
+      *diff_list[row] = sd;
+    else
+      sync_list[row] = sd;
+
     emit dataChanged(index(row, 0), index(row, 2));
   }
   return;
@@ -380,8 +397,9 @@ void SyncModel::make_changes_list()
 
   // Clear the sync list
   if(sync_list.size() > 0) {
-    beginRemoveRows( QModelIndex(), 0, sync_list.size()-1 );
+    beginRemoveRows( QModelIndex(), 0, rowCount(QModelIndex())-1 );
     sync_list.clear();
+    diff_list.clear();
     endRemoveRows();
   }
 
@@ -444,8 +462,9 @@ void SyncModel::make_changes_list()
   qStableSort( temp_sync_list );
 
   cout << temp_sync_list.size() << " files added to the sync list." << endl;
-  beginInsertRows( QModelIndex(), 0, temp_sync_list.size()-1);
   sync_list = temp_sync_list;
+  _generate_diff_list();
+  beginInsertRows( QModelIndex(), 0, rowCount(QModelIndex())-1);
   endInsertRows();
   return;
 }
@@ -517,8 +536,9 @@ void SyncModel::reset()
 {
   // Clear the sync list
   if(sync_list.size() > 0) {
-    beginRemoveRows( QModelIndex(), 0, sync_list.size()-1 );
+    beginRemoveRows( QModelIndex(), 0, rowCount(QModelIndex())-1 );
     sync_list.clear();
+    diff_list.clear();
     endRemoveRows();
   }
 
@@ -537,13 +557,26 @@ void SyncModel::reset()
 
 void SyncModel::selection_changed(const QModelIndex &current, const QModelIndex)
 {
-  if(current.row() < sync_list.size() && current.row() >= 0) {
-    SyncData sd( sync_list[current.row()] );
+  if( current.row() >= 0 && 
+      (_diff_only || current.row() < sync_list.size()) &&
+      (!_diff_only || current.row() < diff_list.size()) ){
+
+    SyncData sd( _diff_only ? *diff_list[current.row()] : sync_list[current.row()] );
     std::pair<QString,QString> info = sd.get_info();
     emit set_info(info.first, info.second);
 
   } else {
     emit set_info(QString(), QString());
   }   
+  return;
+}
+
+void SyncModel::_generate_diff_list()
+{
+  for(int r=0; r<sync_list.size(); r++) {
+    SyncData sd( sync_list[r] );
+    if( sd.remote.current_fd != sd.local.current_fd )
+      diff_list.append( &sync_list[r] );
+  }
   return;
 }

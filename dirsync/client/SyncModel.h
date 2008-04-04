@@ -60,7 +60,7 @@ Q_OBJECT
 
  public:
   SyncModel();
-  int rowCount(const QModelIndex &) const {return sync_list.size();}
+  int rowCount(const QModelIndex &) const {return _diff_only ? diff_list.size() : sync_list.size();}
   int columnCount(const QModelIndex &) const {return 4;}
 
   QVariant data(const QModelIndex &, int) const;
@@ -110,6 +110,7 @@ Q_OBJECT
   void _compile_changes();
   bool _read_last_sync_file();
   void _make_fresh_sync_list();
+  void _generate_diff_list();
 
   bool _loaded_previous_state;
   QString _local_dir;
@@ -117,7 +118,9 @@ Q_OBJECT
   DirData _remote_dirdata;
 
   QList<SyncData> sync_list;
+  QList<SyncData*> diff_list;
 
+  bool _diff_only;
   bool changes_compiled;
   QList<FileData> _files_to_send;
   QList<FileData> _files_to_get;
