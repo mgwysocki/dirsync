@@ -142,7 +142,6 @@ void MainWindow::perform_sync()
   connect(&_net_thread, SIGNAL(done()), pd, SLOT(done()));
   pd->show();
 
-  connect(&_net_thread, SIGNAL(success()), this, SLOT(refresh_lists()));
   connect(&_net_thread, SIGNAL(done()), this, SLOT(disconnect_signals()));
   _net_thread.set_mode(ClientMode::Syncing);
   _net_thread.wake_up();
@@ -202,7 +201,7 @@ void MainWindow::createActions()
   
   _toolbar->addSeparator();
 
-  _diff_act = new QAction(tr("Hide Files That Differ"), this);
+  _diff_act = new QAction(tr("Hide Files That Are Synced"), this);
   //_diff_act->setShortcut(tr("Ctrl+1"));
   connect(_diff_act, SIGNAL(triggered()), this, SLOT(toggle_show_diff()));
   _toolbar->addAction(_diff_act);
