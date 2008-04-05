@@ -9,6 +9,7 @@ using namespace std;
 #include "ProgressDialog.h"
 #include "InfoDockWidget.h"
 #include "MyTableView.h"
+#include "PreferencesDialog.h"
 
 MainWindow::MainWindow() :
   QMainWindow(),
@@ -25,14 +26,11 @@ MainWindow::MainWindow() :
   
   this->addToolBar(_toolbar);
   this->addDockWidget(Qt::BottomDockWidgetArea, _info_dock);
-  //_info_dock->setFloating(true);
 
   _toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   createActions();
   createMenus();
   
-//   connect(_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)), 
-// 	  _sync_model, SLOT(selection_changed(QItemSelection, QItemSelection)));
   connect(_view->selectionModel(), SIGNAL(currentRowChanged(QModelIndex, QModelIndex)), 
 	  _sync_model, SLOT(selection_changed(QModelIndex, QModelIndex)));
 
@@ -165,78 +163,6 @@ void MainWindow::about()
 			"shows how to use QPainter to print an image.</p>"));
 }
 
-void MainWindow::createActions()
-{
-  QIcon new_icon(":/icons/add-file-48x48.png");
-  _new_act = _toolbar->addAction(new_icon, "&New Sync");
-  _new_act->setShortcut(tr("Ctrl+N"));
-  connect(_new_act, SIGNAL(triggered()), this, SLOT(new_sync()));
-
-  QIcon sync_icon(":/icons/synchronize-48x48.png");
-  _sync_act = _toolbar->addAction(sync_icon, "&Perform Sync");
-  _sync_act->setShortcut(tr("Ctrl+G"));
-  connect(_sync_act, SIGNAL(triggered()), this, SLOT(perform_sync()));
-
-  QIcon refresh_icon(":/icons/refresh.png");
-  _refresh_act = _toolbar->addAction(refresh_icon, "&Refresh");
-  _refresh_act->setShortcut(tr("Ctrl+R"));
-  connect(_refresh_act, SIGNAL(triggered()), this, SLOT(refresh_lists()));
-
-  _toolbar->addSeparator();
-
-  QIcon left_arrow_icon(":/icons/left_arrow.png");
-  _sync_to_server_act = _toolbar->addAction(left_arrow_icon, "Sync to Server");
-  //_sync_to_server_act->setShortcut(tr("Ctrl+1"));
-  connect(_sync_to_server_act, SIGNAL(triggered()), this, SLOT(set_to_server()));
-
-  QIcon no_icon(":/icons/no_symbol.png");
-  _no_act = _toolbar->addAction(no_icon, "Do Nothing");
-  //_no_act->setShortcut(tr("Ctrl+4"));
-  connect(_no_act, SIGNAL(triggered()), this, SLOT(set_to_no_action()));
-
-  QIcon right_arrow_icon(":/icons/right_arrow.png");
-  _sync_to_client_act = _toolbar->addAction(right_arrow_icon, "Sync to Client");
-  //_sync_to_client_act->setShortcut(tr("Ctrl+1"));
-  connect(_sync_to_client_act, SIGNAL(triggered()), this, SLOT(set_to_client()));  
-  
-  _toolbar->addSeparator();
-
-  _diff_act = new QAction(tr("Hide Files That Are Synced"), this);
-  //_diff_act->setShortcut(tr("Ctrl+1"));
-  connect(_diff_act, SIGNAL(triggered()), this, SLOT(toggle_show_diff()));
-  _toolbar->addAction(_diff_act);
-
-  _send_act = new QAction(tr("Send File to Server"), this);
-  _send_act->setShortcut(tr("Ctrl+1"));
-  connect(_send_act, SIGNAL(triggered()), this, SLOT(set_to_send()));
-  //_toolbar->addAction(_send_act);
-
-  _get_act = new QAction(tr("Get File from Server"), this);
-  _get_act->setShortcut(tr("Ctrl+2"));
-  connect(_get_act, SIGNAL(triggered()), this, SLOT(set_to_get()));
-  //_toolbar->addAction(_get_act);
-
-  _delete_remote_act = new QAction(tr("Delete File from Server"), this);
-  _delete_remote_act->setShortcut(tr("Ctrl+3"));
-  connect(_delete_remote_act, SIGNAL(triggered()), this, SLOT(set_to_remote_delete()));
-  //_toolbar->addAction(_delete_remote_act);
-
-  _delete_local_act = new QAction(tr("Delete File from Client"), this);
-  _delete_local_act->setShortcut(tr("Ctrl+4"));
-  connect(_delete_local_act, SIGNAL(triggered()), this, SLOT(set_to_local_delete()));
-  //_toolbar->addAction(_delete_local_act);
-
-  _exit_act = new QAction(tr("E&xit"), this);
-  _exit_act->setShortcut(tr("Ctrl+Q"));
-  connect(_exit_act, SIGNAL(triggered()), this, SLOT(close()));
-
-  _about_act = new QAction(tr("&About"), this);
-  connect(_about_act, SIGNAL(triggered()), this, SLOT(about()));
-
-  _about_qt_act = new QAction(tr("About &Qt"), this);
-  connect(_about_qt_act, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-}
-
 
 void MainWindow::set_to_client()
 {
@@ -287,12 +213,83 @@ void MainWindow::set_to_local_delete()
   return;
 }
 
+void MainWindow::createActions()
+{
+  QIcon new_icon(":/icons/add-file-48x48.png");
+  _new_act = _toolbar->addAction(new_icon, "&New Sync");
+  _new_act->setShortcut(tr("Ctrl+N"));
+  connect(_new_act, SIGNAL(triggered()), this, SLOT(new_sync()));
+
+  QIcon sync_icon(":/icons/synchronize-48x48.png");
+  _sync_act = _toolbar->addAction(sync_icon, "&Perform Sync");
+  _sync_act->setShortcut(tr("Ctrl+G"));
+  connect(_sync_act, SIGNAL(triggered()), this, SLOT(perform_sync()));
+
+  QIcon refresh_icon(":/icons/refresh.png");
+  _refresh_act = _toolbar->addAction(refresh_icon, "&Refresh");
+  _refresh_act->setShortcut(tr("Ctrl+R"));
+  connect(_refresh_act, SIGNAL(triggered()), this, SLOT(refresh_lists()));
+
+  _toolbar->addSeparator();
+
+  QIcon left_arrow_icon(":/icons/left_arrow.png");
+  _sync_to_server_act = _toolbar->addAction(left_arrow_icon, "Sync to Server");
+  connect(_sync_to_server_act, SIGNAL(triggered()), this, SLOT(set_to_server()));
+
+  QIcon no_icon(":/icons/no_symbol.png");
+  _no_act = _toolbar->addAction(no_icon, "Do Nothing");
+  connect(_no_act, SIGNAL(triggered()), this, SLOT(set_to_no_action()));
+
+  QIcon right_arrow_icon(":/icons/right_arrow.png");
+  _sync_to_client_act = _toolbar->addAction(right_arrow_icon, "Sync to Client");
+  connect(_sync_to_client_act, SIGNAL(triggered()), this, SLOT(set_to_client()));  
+  
+  _toolbar->addSeparator();
+
+  _diff_act = new QAction(tr("Hide Files That Are Synced"), this);
+  connect(_diff_act, SIGNAL(triggered()), this, SLOT(toggle_show_diff()));
+  _toolbar->addAction(_diff_act);
+
+  _send_act = new QAction(tr("Send File to Server"), this);
+  _send_act->setShortcut(tr("Ctrl+1"));
+  connect(_send_act, SIGNAL(triggered()), this, SLOT(set_to_send()));
+
+  _get_act = new QAction(tr("Get File from Server"), this);
+  _get_act->setShortcut(tr("Ctrl+2"));
+  connect(_get_act, SIGNAL(triggered()), this, SLOT(set_to_get()));
+
+  _delete_remote_act = new QAction(tr("Delete File from Server"), this);
+  _delete_remote_act->setShortcut(tr("Ctrl+3"));
+  connect(_delete_remote_act, SIGNAL(triggered()), this, SLOT(set_to_remote_delete()));
+
+  _delete_local_act = new QAction(tr("Delete File from Client"), this);
+  _delete_local_act->setShortcut(tr("Ctrl+4"));
+  connect(_delete_local_act, SIGNAL(triggered()), this, SLOT(set_to_local_delete()));
+
+  _exit_act = new QAction(tr("E&xit"), this);
+  _exit_act->setShortcut(tr("Ctrl+Q"));
+  connect(_exit_act, SIGNAL(triggered()), this, SLOT(close()));
+
+  _prefs_act = new QAction(tr("Preferences"), this);
+  //_prefs_act->setShortcut(tr("Ctrl+Q"));
+  connect(_prefs_act, SIGNAL(triggered()), this, SLOT(open_preferences()));
+
+  _about_act = new QAction(tr("&About"), this);
+  connect(_about_act, SIGNAL(triggered()), this, SLOT(about()));
+
+  _about_qt_act = new QAction(tr("About &Qt"), this);
+  connect(_about_qt_act, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+}
+
+
 void MainWindow::createMenus()
 {
   _file_menu = new QMenu(tr("&File"), this);
   _file_menu->addAction(_new_act);
   _file_menu->addAction(_refresh_act);
   _file_menu->addAction(_sync_act);
+  _file_menu->addSeparator();
+  _file_menu->addAction(_prefs_act);
   _file_menu->addSeparator();
   _file_menu->addAction(_exit_act);
 
@@ -332,4 +329,11 @@ void MainWindow::toggle_show_diff()
     _sync_model->set_diff_only(true);
     _diff_act->setText("Show Files That Are Synced");
   }
+}
+
+void MainWindow::open_preferences()
+{
+  PreferencesDialog pd(this);
+  pd.setModal(true);
+  pd.exec();
 }

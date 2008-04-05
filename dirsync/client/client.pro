@@ -11,6 +11,7 @@ HEADERS       = ../FileData.h \
                 ../FileHandler.h \
                 ../FileAgent.h \
                 ../Preferences.h \
+                PreferencesDialog.h \
                 ProgressDialog.h \
                 SaveFile.h \
                 DirData.h \
@@ -25,6 +26,7 @@ SOURCES       = ../FileData.cxx \
                 ../FileHandler.cxx \
                 ../FileAgent.cxx \
                 ../Preferences.cxx \
+                PreferencesDialog.cxx \
                 ProgressDialog.cxx \
                 SaveFile.cxx \
                 DirData.cxx \

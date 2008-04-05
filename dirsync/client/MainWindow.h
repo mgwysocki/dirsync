@@ -46,6 +46,7 @@ class MainWindow : public QMainWindow
   void set_to_local_delete();
   void set_remote_filelist(QList<FileData> fl);
   void toggle_show_diff();
+  void open_preferences();
 
  private:
   void delete_local_file(const FileData &);
@@ -76,6 +77,7 @@ class MainWindow : public QMainWindow
   QAction* _diff_act;
   QAction* _send_act;
   QAction* _get_act;
+  QAction* _prefs_act;
   QAction* _about_act;
   QAction* _about_qt_act;
 
