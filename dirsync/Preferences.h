@@ -46,6 +46,7 @@ class Preferences
   QString _temp_dir;
   QString _dirsync_dir;
   bool _copy_permission_bits;
+  const quint32 _version;
 };
 
 #endif

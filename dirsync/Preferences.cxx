@@ -11,7 +11,8 @@ Preferences* Preferences::_singleton(0);
 
 Preferences::Preferences() :
   _size(800, 600),
-  _copy_permission_bits(false)
+  _copy_permission_bits(false),
+  _version(1)
 { 
   QDir data_dir = QDir::home();
 #ifdef Q_WS_WIN
@@ -52,14 +53,25 @@ bool Preferences::load(QString filename)
   if( !file.open(QIODevice::ReadOnly) )
     return false;
 
-  quint32 temp(0);
   QDataStream in(&file);    // read the data serialized from the file
-  in >> _size >> _position >> _temp_dir >> temp;
-  file.close();
-  _copy_permission_bits = (temp&1);
-  printf("Loaded QSize(%d, %d), QPoint(%d, %d), QString(\"%s\"), int(%d)\n",
-	 _size.width(), _size.height(), _position.x(), _position.y(), 
-	 qPrintable(_temp_dir), temp);
+
+  quint32 version(0);
+  in >> version;
+  if( version==1 ){
+    quint32 temp(0);
+    in >> _size >> _position >> _temp_dir >> temp;
+    _copy_permission_bits = (temp&1);
+    printf("Loaded QSize(%d, %d), QPoint(%d, %d), QString(\"%s\"), int(%d)\n",
+	   _size.width(), _size.height(), _position.x(), _position.y(), 
+	   qPrintable(_temp_dir), temp);
+    file.close();
+
+  } else {
+    file.close();
+    std::cout << "Unrecognized version of preferences file: " << version << std::endl;
+    return false;
+  }
+
   return true;
 }
 
@@ -70,7 +82,7 @@ bool Preferences::save(QString filename)
     return false;
 
   QDataStream out(&file);   // we will serialize the data into the file
-  out << _size << _position << _temp_dir << quint32(_copy_permission_bits);
+  out << _version << _size << _position << _temp_dir << quint32(_copy_permission_bits);
   file.close();
 
   printf("Saved QSize(%d, %d), QPoint(%d, %d), QString(\"%s\"), int(%d)\n",
