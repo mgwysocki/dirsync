@@ -51,6 +51,9 @@ class SyncData
 
   QString situ;
   int action;
+
+  friend QDataStream & operator<<( QDataStream &dout, const SyncData &sd );
+  friend QDataStream & operator>>( QDataStream &din, SyncData &sd );
 };
 
 
@@ -111,7 +114,7 @@ Q_OBJECT
   void make_changes_list();
   void _read_dir(QString, const QDir &);
   void _compile_changes();
-  bool _read_last_sync_file();
+  bool read_sync_file();
   void _make_fresh_sync_list();
   void _generate_diff_list();
 

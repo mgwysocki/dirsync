@@ -230,6 +230,22 @@ std::pair<QString,QString> SyncData::get_info() const
   return std::pair<QString,QString>(local_text, remote_text);
 }
 
+QDataStream & operator<<( QDataStream &dout, const SyncData &sd )
+{
+  return dout << sd.relative_filename
+	      << sd.local << sd.remote
+	      << sd.situ << sd.action;
+};
+
+QDataStream & operator>>( QDataStream &din, SyncData &sd )
+{
+  din >> sd.relative_filename;
+  din >> sd.local;
+  din >> sd.remote;
+  din >> sd.situ;
+  din >> sd.action;
+  return din;
+};
 
 //=================================================================================
 //
@@ -348,45 +364,62 @@ void SyncModel::make_local_list()
 }
 
 
-bool SyncModel::_read_last_sync_file()
+bool SyncModel::read_sync_file()
 {
+//   QList<SyncData> old_sync_list;
 //   QFile syncfile("lastsync.dat");
 //   if( !syncfile.open(QIODevice::ReadOnly) ){
 //     cout << "SyncModel::_read_last_sync_file() - Could not open sync file!!!" << endl;
 //     return false;
 //   }
+
 //   QDataStream in(&syncfile);
 //   in.setVersion(QDataStream::Qt_4_0);
-//   in >> _sync_files;
+//   in >> old_sync_list;
 //   syncfile.close();
+
+//   QList<SyncData>::const_iterator olditer = old_sync_list.begin();
+//   while(olditer != old_sync_list.end()) {
+
+//     bool found(false);
+//     QList<SyncData>::iterator newiter = new_sync_list.begin();
+//     while(newiter != new_sync_list.end()) {
+//       if( olditer->relative_filename == newiter->relative_filename ){
+// 	newiter->local.previous_fd = olditer->local.current_fd;
+// 	newiter->remote.previous_fd = olditer->remote.current_fd;
+// 	found = true;
+// 	break;
+//       }
+//       newiter++;
+//     }
+
+//     if( !found ){
+//       FileAgent local_fa(olditer->local.current_fd, FileData());
+//       FileAgent remote_fa(olditer->remote.current_fd, FileData());
+//       SyncData sd(local_fa, remote_fa, _loaded_previous_state);
+//       new_sync_list.append(sd);
+//     }
+//     olditer++;
+//   }
+
+//   qStableSort( new_sync_list );
   return true;
 }
 
 void SyncModel::save_sync_file()
 {
-//   if(!_sync_files.size()) _make_fresh_sync_list();
-//   QFile syncfile("lastsync.dat");
-//   if( !syncfile.open(QIODevice::WriteOnly) ){
-//     cout << "SyncModel::_save_sync_file() - Could not open sync file!!!" << endl;
-//     return;
-//   }
-//   QDataStream out(&syncfile);
-//   out.setVersion(QDataStream::Qt_4_0);
-//   out << _sync_files;
-//   syncfile.close();
-  return;
-}
+  if( sync_list.size()==0) return;
 
-void SyncModel::_make_fresh_sync_list()
-{
-//   QList<SyncData>::const_iterator siter = sync_list.begin();
-//   while(siter != sync_list.end()) {
-//     if(siter->action == Action::SendToServer)
-//       _sync_files.append(siter->local);
-//     else if(siter->action == Action::GetFromServer)
-//       _sync_files.append(siter->remote);
-//     siter++;
-//   }
+  QFile syncfile("lastsync.dat");
+  if( !syncfile.open(QIODevice::WriteOnly) ){
+    cout << "SyncModel::_save_sync_file() - Could not open sync file!!!" << endl;
+    return;
+  }
+
+  QDataStream out(&syncfile);
+  out.setVersion(QDataStream::Qt_4_0);
+  out << sync_list;
+  syncfile.close();
   return;
 }
 
@@ -403,11 +436,6 @@ void SyncModel::make_changes_list()
     endRemoveRows();
   }
 
-  //   _read_last_sync_file();
-  //   if( ! _read_last_sync_file() ) {
-  //     modified_files += _current_files_list;
-  //     return;
-  //   }
 
   // Make our temporary lists of FileAgents
   QList<FileAgent> local_files = _local_dirdata.file_agents;
@@ -460,6 +488,8 @@ void SyncModel::make_changes_list()
   }
 
   qStableSort( temp_sync_list );
+
+  //read_sync_file();
 
   cout << temp_sync_list.size() << " files added to the sync list." << endl;
   sync_list = temp_sync_list;
