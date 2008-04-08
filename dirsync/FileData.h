@@ -28,7 +28,7 @@ class FileData {
   bool operator==(const FileData &fd) const
   { return ((relative_filename == fd.relative_filename) &&
 	    (size == fd.size) &&
-	    (modtime == fd.modtime) &&
+	    (modtime == fd.modtime || isdir) &&
 	    (isdir == fd.isdir) &&
 	    (checksum == fd.checksum)); }
 

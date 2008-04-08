@@ -20,7 +20,6 @@ MainWindow::MainWindow() :
 {
   _view->setModel(_sync_model);
   _view->setSelectionBehavior(QAbstractItemView::SelectRows);
-  QHeaderView* header = _view->horizontalHeader();
   _view->horizontalHeader()->setHighlightSections(false);
   this->setCentralWidget(_view);
   
