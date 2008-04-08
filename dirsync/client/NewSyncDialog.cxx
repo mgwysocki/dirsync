@@ -4,6 +4,7 @@
 using namespace std;
 
 #include "NewSyncDialog.h"
+#include "../Preferences.h"
 
 ProfileReader::ProfileReader()
 {read_profiles();}
