@@ -162,6 +162,7 @@ void NetworkServer::read_incoming()
     if(_socket->bytesAvailable() == 0) _socket->waitForReadyRead();
     FileData fd( FileHandler::get_fd_from_socket(_socket) );
     tcp << HandShake::SendingFile;
+    _socket->flush();
     _send_file(fd);
     connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
     return;
