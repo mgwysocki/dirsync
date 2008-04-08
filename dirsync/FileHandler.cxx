@@ -44,13 +44,10 @@ void FileHandler::_load_file_data(const QString &full_path)
   _fd.perms = fileinfo.permissions();
 
   struct stat buf;
-  stat(full_path.toAscii().constData(), &buf);
+  stat(full_path.toLocal8Bit().constData(), &buf);
   _fd.acctime = buf.st_atime;
   _fd.modtime = buf.st_mtime;
   _fd.initialized = true;
-
-  cout << "Qt: " << hex << _fd.perms << "\nstat: " << buf.st_mode << dec << endl; 
-
   return;
 }
 
