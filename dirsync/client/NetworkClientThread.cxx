@@ -322,7 +322,15 @@ bool NetworkClientThread::_get_files()
     tcp.setVersion(QDataStream::Qt_4_0);
     tcp << HandShake::RequestFile;
     FileHandler::send_fd_to_socket(remote_fd, _socket);
-    _socket->waitForReadyRead();
+    while( _socket->bytesAvailable() < 4) {
+      if( !_socket->waitForReadyRead(10000)) {
+	emit error(_socket->errorString());
+	cout << qPrintable(_socket->errorString()) << endl;
+	//return false;
+	cout << "Timeout while waiting for handshake!" << endl;
+      }
+    }
+    //_socket->waitForReadyRead();
     tcp >> handshake;
     if(handshake != HandShake::SendingFile) {
       cout << "Wrong handshake! (" << handshake << ")" << endl;
