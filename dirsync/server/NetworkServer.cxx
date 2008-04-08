@@ -113,6 +113,7 @@ void NetworkServer::new_connection()
 //
 void NetworkServer::read_incoming()
 {
+  cout << "NetworkServer::read_incoming()" << endl;;
   if(_mutex.tryLock()) {
     cout << "_mutex is unlocked" << endl;
     _mutex.unlock();
@@ -121,7 +122,6 @@ void NetworkServer::read_incoming()
   }
   QMutexLocker locker(&_mutex);    
   disconnect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-  cout << "NetworkServer::read_incoming()" << endl;;
 
   quint32 handshake(0);
   QDataStream tcp(_socket);
@@ -234,15 +234,16 @@ void NetworkServer::_send_file(const FileData &fd)
   quint64 remaining_size(fd.size);
   quint32 blocksize(_packet_size);
   while(remaining_size>0) {
-    cout << "remaining_size,blocksize = " << remaining_size << "," << blocksize << endl;
+    //cout << "remaining_size,blocksize = " << remaining_size << "," << blocksize << endl;
     if(remaining_size<blocksize) blocksize = remaining_size;
     tcp << outfile.read(blocksize);
     remaining_size -= blocksize;
   }
   outfile.close();
+  cout << "Transfer complete." << endl;
 
-  FileHandler fh(fd);
-  cout << "Checksum: " << fh.get_checksum() << endl;
+  //FileHandler fh(fd);
+  //cout << "Checksum: " << fh.get_checksum() << endl;
   return;
 }
 

@@ -20,18 +20,20 @@ class FileData {
     {return 36+2*(filename.length()+relative_filename.length());}
 
   bool operator<(const FileData &fd) const
-  { return (filename < fd.filename); }
+    { return (filename < fd.filename); }
 
   bool operator>(const FileData &fd) const
-  { return (filename > fd.filename); }
+    { return (filename > fd.filename); }
 
   bool operator==(const FileData &fd) const
-  { return ((relative_filename == fd.relative_filename) &&
-	    (size == fd.size) &&
-	    (modtime == fd.modtime || isdir) &&
-	    (isdir == fd.isdir) &&
-	    (checksum == fd.checksum)); }
-
+    { if(isdir)  return ((relative_filename == fd.relative_filename) &&
+			 (isdir == fd.isdir));
+      else       return ((relative_filename == fd.relative_filename) &&
+			 (size == fd.size) &&
+			 (modtime == fd.modtime) &&
+			 (isdir == fd.isdir) &&
+			 (checksum == fd.checksum)); }
+  
   bool operator!=(const FileData &fd) const
     { return !(*this==fd);}
 

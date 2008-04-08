@@ -228,7 +228,7 @@ bool NetworkClientThread::_send_files()
 
     FileData local_fd(_files_to_send.takeFirst());
     cout << "Sending file to server: " << qPrintable(local_fd.relative_filename) << endl;
-    emit change_upload_status( QString("Sending %1 to server...").arg(local_fd.relative_filename) );
+    emit change_upload_status( QString("Sending to server:\n%1").arg(local_fd.relative_filename) );
 
     quint32 handshake;
     QDataStream tcp(_socket);
@@ -309,7 +309,7 @@ bool NetworkClientThread::_get_files()
   while(!_quit && _files_to_get.size()>0) {
 
     FileData remote_fd(_files_to_get.takeFirst());
-    emit change_download_status(QString("Downloading %1 from server...").arg(remote_fd.relative_filename) );
+    emit change_download_status(QString("Downloading from server:\n%1").arg(remote_fd.relative_filename) );
 
     cout << "NetworkClientThread: requesting file..." << endl
 	 << "FileData::filename = " << qPrintable(remote_fd.filename) << endl
