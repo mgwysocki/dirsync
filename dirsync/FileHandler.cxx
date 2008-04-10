@@ -11,18 +11,21 @@ using namespace std;
 bool FileHandler::_override_perms(false);
 
 FileHandler::FileHandler() :
-  _isopen(false)
+  _isopen(false),
+  _md5_ctx(0)
 {}
 
 FileHandler::FileHandler(const QString &full_path) :
-  _isopen(false)
+  _isopen(false),
+  _md5_ctx(0)
 { 
   _load_file_data(full_path); 
 }
 
 FileHandler::FileHandler(const FileData &fd) :
   _fd(fd),
-  _isopen(false)
+  _isopen(false),
+  _md5_ctx(0)
 {}
 
 FileHandler::~FileHandler()
@@ -106,6 +109,12 @@ bool FileHandler::begin_file_write()
 
   _file.setFileName(get_temp_filename());
 
+  if(_md5_ctx) delete _md5_ctx;
+  _md5_ctx = new md5_context;
+  md5_starts( _md5_ctx );
+
+  //_md5 = MD5();
+
   cout << "Writing file: " << qPrintable(_fd.filename) << endl;
   _file.open(QIODevice::WriteOnly);
   return true;
@@ -115,6 +124,9 @@ void FileHandler::write_to_file(const QByteArray &buffer)
 {
   if(_isopen)
     _file.write(buffer);
+  char* d = const_cast<char*>(buffer.constData());
+  md5_update(_md5_ctx, reinterpret_cast<unsigned char*>(d), buffer.size());
+  //_md5.update(reinterpret_cast<unsigned char*>(d), buffer.size());
   return;
 }
 
@@ -128,6 +140,13 @@ void FileHandler::end_file_write()
   }
 
   _file.rename(_fd.filename);
+
+  unsigned char md5_output[16];
+  md5_finish( _md5_ctx, md5_output );
+  delete _md5_ctx;
+
+  QString hash = convert_to_hex(md5_output, 16);
+  cout << "md5: " << qPrintable(hash) << endl;
 
   struct utimbuf ubuf;
   ubuf.modtime = _fd.modtime;
@@ -153,3 +172,17 @@ QString FileHandler::get_temp_filename()
   QDir data_dir( Preferences::get_instance()->get_temp_dir() );
   return data_dir.absoluteFilePath("tempfile");
 }
+
+QString FileHandler::convert_to_hex(const unsigned char* digest, const uint size) {
+  QString hash;
+  char bits[3];
+  
+  fill(bits, bits + sizeof(bits), '\0');
+  
+  for(uint i=0 ; i<size; i++) {
+    snprintf(bits, sizeof(bits), "%02x", digest[i]);
+    hash += bits;
+  }
+  
+  return hash;
+};

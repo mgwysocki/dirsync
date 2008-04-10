@@ -7,7 +7,9 @@ MOC_DIR = $$OBJECTS_DIR
 CONFIG += qt thread
 RESOURCES += icons.qrc
 
-HEADERS       = ../FileData.h \
+
+HEADERS       = ../md5/md5.h \
+                ../FileData.h \
                 ../FileHandler.h \
                 ../FileAgent.h \
                 ../Preferences.h \
@@ -22,7 +24,8 @@ HEADERS       = ../FileData.h \
                 MyTableView.h \
                 MainWindow.h
 
-SOURCES       = ../FileData.cxx \
+SOURCES       = ../md5/md5.c \
+                ../FileData.cxx \
                 ../FileHandler.cxx \
                 ../FileAgent.cxx \
                 ../Preferences.cxx \

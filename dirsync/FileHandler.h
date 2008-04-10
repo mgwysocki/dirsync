@@ -2,7 +2,10 @@
 #define FILEHANDLER_H
 
 #include <QObject>
+#include <string>
+
 #include "../FileData.h"
+#include "../md5/md5.h"
 
 class QTcpSocket;
 
@@ -41,6 +44,9 @@ Q_OBJECT
   FileData _fd;
   QFile _file;
   bool _isopen;
+  md5_context* _md5_ctx;
+
+  QString convert_to_hex(const unsigned char*, const uint);
 };
 
 #endif

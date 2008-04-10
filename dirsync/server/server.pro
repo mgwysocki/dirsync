@@ -6,14 +6,16 @@ MOC_DIR = $$OBJECTS_DIR
 
 CONFIG += qt thread
 
-HEADERS       = ../FileData.h \
+HEADERS       = ../md5/md5.h \
+                ../FileData.h \
                 ../FileHandler.h \
                 ../Preferences.h \
                 NetworkServer.h \
                 NetworkServerThread.h \
                 ServerDialog.h
 
-SOURCES       = ../FileData.cxx \
+SOURCES       = ../md5/md5.c \
+                ../FileData.cxx \
                 ../FileHandler.cxx \
                 ../Preferences.cxx \
                 NetworkServer.cxx \

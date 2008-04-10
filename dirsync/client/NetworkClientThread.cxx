@@ -12,6 +12,22 @@ using namespace std;
 #include "NetworkClientThread.h"
 //#include "SyncModel.h"
 
+
+QString convert_to_hex(const unsigned char* digest, const uint size) {
+  QString hash;
+  char bits[3];
+  
+  fill(bits, bits + sizeof(bits), '\0');
+  
+  for(uint i=0 ; i<size; i++) {
+    snprintf(bits, sizeof(bits), "%02x", digest[i]);
+    hash += bits;
+  }
+  
+  return hash;
+};
+
+
 NetworkClientThread::NetworkClientThread(QObject* parent) :
   QThread(parent),
   _socket(0),
@@ -256,22 +272,23 @@ bool NetworkClientThread::_send_files()
       continue;
     }
 
+    md5_context md5_ctx;
+    md5_starts( &md5_ctx );
+
     QFile outfile(local_fd.filename);
     outfile.open(QIODevice::ReadOnly);
-
     connect(_socket, SIGNAL(bytesWritten(qint64)), this, SIGNAL(bytesWritten(qint64)));
 
-    quint16 running_sum(0);
     quint64 remaining_size(local_fd.size);
     quint32 blocksize(_packet_size);
     cout << "blocksize = " << blocksize << endl;
     while(remaining_size>0) {
       if(remaining_size<blocksize) blocksize = remaining_size;
-//       cout << "remaining_size, block_size = " 
-// 	   << remaining_size << ", " << blocksize << endl;
       QByteArray data( outfile.read(blocksize) );
       tcp << data;
-      running_sum += qChecksum(data, data.length());
+
+      char* d = const_cast<char*>(data.constData());
+      md5_update(&md5_ctx, reinterpret_cast<unsigned char*>(d), data.size());
       remaining_size -= blocksize;
     }
     outfile.close();
@@ -280,10 +297,10 @@ bool NetworkClientThread::_send_files()
       _socket->waitForBytesWritten();
     }
 
-    cout << "Running checksum: " << running_sum << endl;
-    outfile.open(QIODevice::ReadOnly);
-    cout << "Checksum: " << qChecksum( outfile.readAll(), local_fd.size ) << endl;
-    outfile.close();
+    unsigned char md5_output[16];
+    md5_finish( &md5_ctx, md5_output );
+    QString hash = convert_to_hex(md5_output, 16);
+    cout << "md5: " << qPrintable(hash) << endl;
     
     cout << "Waiting for acknowledge..." << endl;
     while(_socket->bytesAvailable() < 4)
