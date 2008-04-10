@@ -44,9 +44,7 @@ Q_OBJECT
   FileData _fd;
   QFile _file;
   bool _isopen;
-  md5_context* _md5_ctx;
-
-  QString convert_to_hex(const unsigned char*, const uint);
+  md5 _md5;
 };
 
 #endif

@@ -14,7 +14,7 @@ HEADERS       = ../md5/md5.h \
                 NetworkServerThread.h \
                 ServerDialog.h
 
-SOURCES       = ../md5/md5.c \
+SOURCES       = ../md5/md5.cxx \
                 ../FileData.cxx \
                 ../FileHandler.cxx \
                 ../Preferences.cxx \

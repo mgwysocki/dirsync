@@ -272,9 +272,7 @@ bool NetworkClientThread::_send_files()
       continue;
     }
 
-    md5_context md5_ctx;
-    md5_starts( &md5_ctx );
-
+    md5 tmp_md5;
     QFile outfile(local_fd.filename);
     outfile.open(QIODevice::ReadOnly);
     connect(_socket, SIGNAL(bytesWritten(qint64)), this, SIGNAL(bytesWritten(qint64)));
@@ -286,9 +284,7 @@ bool NetworkClientThread::_send_files()
       if(remaining_size<blocksize) blocksize = remaining_size;
       QByteArray data( outfile.read(blocksize) );
       tcp << data;
-
-      char* d = const_cast<char*>(data.constData());
-      md5_update(&md5_ctx, reinterpret_cast<unsigned char*>(d), data.size());
+      tmp_md5.add_data(data);
       remaining_size -= blocksize;
     }
     outfile.close();
@@ -297,9 +293,7 @@ bool NetworkClientThread::_send_files()
       _socket->waitForBytesWritten();
     }
 
-    unsigned char md5_output[16];
-    md5_finish( &md5_ctx, md5_output );
-    QString hash = convert_to_hex(md5_output, 16);
+    QString hash = tmp_md5.get_hex_string();
     cout << "md5: " << qPrintable(hash) << endl;
     
     cout << "Waiting for acknowledge..." << endl;
