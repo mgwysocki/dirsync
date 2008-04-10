@@ -13,6 +13,7 @@ FEATURES TO ADD:
 
 + Use ".dirsync" on Linux, ~/Library... on Mac, and Application.../dirsync on Windows
 
++ Add a search box to filter results
 
 PREFERENCES
 + tempfile location
