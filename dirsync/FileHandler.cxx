@@ -104,6 +104,11 @@ bool FileHandler::begin_file_write()
     return true;
   }
 
+  if( QFile::exists(get_temp_filename()) && !QFile::remove(get_temp_filename()) ){
+    cout << "Unable to remove old tempfile: " << qPrintable(get_temp_filename()) << endl;
+    return false;
+  }
+
   _file.setFileName(get_temp_filename());
   _md5.reset();
 
@@ -120,25 +125,36 @@ void FileHandler::write_to_file(const QByteArray &buffer)
   return;
 }
 
-void FileHandler::end_file_write()
+void FileHandler::end_file_write(const QString sent_hash = QString())
 {
   _file.close();
   _isopen = false;
+
+  QString received_hash = _md5.get_hex_string();
+  cout << "local md5:  " << qPrintable(received_hash) << endl;
+  cout << "remote md5: " << qPrintable(sent_hash) << endl;
+  if( sent_hash != received_hash ){
+    cout << "MD5SUMS DO NOT MATCH! ABORTING FILE!" << endl;
+    QFile::remove(get_temp_filename());
+    return;
+  }
+
   if( QFile::exists(_fd.filename) && !QFile::remove(_fd.filename) ){
     cout << "Unable to remove old file: " << qPrintable(_fd.filename) << endl;
+    QFile::remove(get_temp_filename());
     return;
   }
 
   _file.rename(_fd.filename);
-
-  QString hash = _md5.get_hex_string();
-  cout << "md5: " << qPrintable(hash) << endl;
 
   struct utimbuf ubuf;
   ubuf.modtime = _fd.modtime;
   utime(qPrintable(_fd.filename), &ubuf);
 
   if(_override_perms) _file.setPermissions(_fd.perms);
+
+  cout << "FileHandler wrote file: " << qPrintable(_fd.filename)
+       << " (" << _fd.size << " bytes)" << endl;
   return;
 }
 

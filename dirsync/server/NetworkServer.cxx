@@ -229,6 +229,7 @@ void NetworkServer::_send_file(const FileData &fd)
     return;
   }
 
+  md5 tmp_md5;
   QFile outfile(fd.filename);
   outfile.open(QIODevice::ReadOnly);
 
@@ -237,11 +238,17 @@ void NetworkServer::_send_file(const FileData &fd)
   while(remaining_size>0) {
     //cout << "remaining_size,blocksize = " << remaining_size << "," << blocksize << endl;
     if(remaining_size<blocksize) blocksize = remaining_size;
-    tcp << outfile.read(blocksize);
+    QByteArray data( outfile.read(blocksize) );
+    tcp << data;
+    tmp_md5.add_data(data);
     remaining_size -= blocksize;
   }
   outfile.close();
   cout << "Transfer complete." << endl;
+
+  QString hash = tmp_md5.get_hex_string();
+  cout << "md5: " << qPrintable(hash) << endl;
+  tcp << (4+2*hash.length()) << hash;
 
   //FileHandler fh(fd);
   //cout << "Checksum: " << fh.get_checksum() << endl;
@@ -278,8 +285,8 @@ void NetworkServer::_receive_file(const FileData &client_fd)
     }
 
     tcp >> blocksize;
-    cout << "remaining_size, block_size = " 
-	 << remaining_size << ", " << blocksize << endl;
+    // cout << "remaining_size, block_size = " 
+    //      << remaining_size << ", " << blocksize << endl;
 
     while( _socket->bytesAvailable() < blocksize) {
       if( !_socket->waitForReadyRead(10000)) {
@@ -289,14 +296,22 @@ void NetworkServer::_receive_file(const FileData &client_fd)
       }
     }
 
-    cout << _socket->bytesAvailable() << " bytes available after wait" << endl;
+    //cout << _socket->bytesAvailable() << " bytes available after wait" << endl;
     buffer.append(_socket->read(blocksize));
     remaining_size -= buffer.size();
-    cout << "buffer size = " << buffer.size() << endl;
+    //cout << "buffer size = " << buffer.size() << endl;
     fh.write_to_file(buffer);
     buffer.clear();
   }
-  fh.end_file_write();
+
+  quint32 hashsize(0);
+  QString sent_hash;
+  while( _socket->bytesAvailable() < 4) _socket->waitForReadyRead();
+  tcp >> hashsize;
+  while( _socket->bytesAvailable() < hashsize) _socket->waitForReadyRead();
+  tcp >> sent_hash;
+
+  fh.end_file_write( sent_hash );
   buffer.clear();
 
   printf("Received filename: %s (%ld bytes)\n", 

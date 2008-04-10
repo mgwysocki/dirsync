@@ -27,7 +27,7 @@ Q_OBJECT
 
   bool begin_file_write();
   void write_to_file(const QByteArray &);
-  void end_file_write();
+  void end_file_write(const QString);
 
   quint16 get_checksum();
   FileData& get_fd() {return _fd;}

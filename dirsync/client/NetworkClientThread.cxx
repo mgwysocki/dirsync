@@ -289,13 +289,14 @@ bool NetworkClientThread::_send_files()
     }
     outfile.close();
 
+    QString hash = tmp_md5.get_hex_string();
+    cout << "md5: " << qPrintable(hash) << endl;
+    tcp << (4+2*hash.length()) << hash;
+    
     while(_socket->bytesToWrite()>0) {
       _socket->waitForBytesWritten();
     }
 
-    QString hash = tmp_md5.get_hex_string();
-    cout << "md5: " << qPrintable(hash) << endl;
-    
     cout << "Waiting for acknowledge..." << endl;
     while(_socket->bytesAvailable() < 4)
       _socket->waitForReadyRead();
@@ -387,13 +388,15 @@ bool NetworkClientThread::_get_files()
       buffer.clear();
     }
 
-    fh.end_file_write();
-    buffer.clear();
-    //emit increment_download();
+    quint32 hashsize(0);
+    QString sent_hash;
+    while( _socket->bytesAvailable() < 4) _socket->waitForReadyRead();
+    tcp >> hashsize;
+    while( _socket->bytesAvailable() < hashsize) _socket->waitForReadyRead();
+    tcp >> sent_hash;
 
-    cout << "Received filename: " << qPrintable(remote_fd.relative_filename)
-	 << " (" << remote_fd.size << " bytes)" << endl;
-    cout << "Checksum: " <<  fh.get_checksum() << endl;
+    fh.end_file_write( sent_hash );
+    buffer.clear();
   }
 
   emit change_download_status( QString("Download complete.") );
