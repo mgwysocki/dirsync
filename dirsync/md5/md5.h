@@ -1,8 +1,5 @@
-/**
- * \file md5.h
- */
-#ifndef XYSSL_MD5_H
-#define XYSSL_MD5_H
+#ifndef __MD5_H
+#define __MD5_H
 
 #include <QString>
 
@@ -19,11 +16,22 @@ class md5
   void process( const unsigned char * );
   void finish( unsigned char output[16] );
 
-  unsigned long _total[2];     /*!< number of bytes processed  */
-  unsigned long _state[4];     /*!< intermediate digest state  */
-  unsigned char _buffer[64];   /*!< data block being processed */
+  unsigned long S(const unsigned long &, const unsigned int &) const;
+  void PF(unsigned long &a, const unsigned long &b, const unsigned long &c, const unsigned long &d, 
+	  const unsigned long &Xk, const unsigned int &s, const unsigned long &t);
+  void PG(unsigned long &a, const unsigned long &b, const unsigned long &c, const unsigned long &d, 
+	  const unsigned long &Xk, const unsigned int &s, const unsigned long &t);
+  void PH(unsigned long &a, const unsigned long &b, const unsigned long &c, const unsigned long &d, 
+	  const unsigned long &Xk, const unsigned int &s, const unsigned long &t);
+  void PI(unsigned long &a, const unsigned long &b, const unsigned long &c, const unsigned long &d, 
+	  const unsigned long &Xk, const unsigned int &s, const unsigned long &t);
 
-  static const unsigned char md5_padding[64];
+  void get_ulong_le(unsigned long &, const unsigned char*, const unsigned int &);
+  void put_ulong_le(const unsigned long &, unsigned char*, const unsigned int &);
+
+  unsigned long _total[2];     // number of bytes processed
+  unsigned long _state[4];     // intermediate digest state
+  unsigned char _buffer[64];   // data block being processed
 };
 
-#endif /* md5.h */
+#endif // __MD5_H
