@@ -307,7 +307,7 @@ bool NetworkClientThread::_get_files()
     }
 
     QString md5str( SocketTool::get_QString(_socket) );
-    fh.end_file_write( md5str );
+    fh.end_file_write( md5str );  // compare local/remote md5-sums
     buffer.clear();
   }
 

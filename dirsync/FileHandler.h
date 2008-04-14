@@ -19,8 +19,6 @@ Q_OBJECT
   FileHandler(const FileData &);
   ~FileHandler();
 
-  static FileData get_fd_from_socket(QTcpSocket*);
-  static void send_fd_to_socket(const FileData&, QTcpSocket*);
   static QString get_temp_filename();
   static bool get_override_permissions() {return _override_perms;}
   static void set_override_permissions(bool b) {_override_perms = b;}

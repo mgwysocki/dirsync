@@ -52,14 +52,6 @@ void FileHandler::_load_file_data(const QString &full_path)
 }
 
 
-void FileHandler::send_fd_to_socket(const FileData &fd, QTcpSocket* socket)
-{
-  QDataStream tcp(socket);    // write the data serialized to socket
-  tcp << fd.socket_size();
-  tcp << fd;
-  return;
-}
-
 bool FileHandler::begin_file_write()
 {
   if(_isopen) return false;
@@ -68,12 +60,6 @@ bool FileHandler::begin_file_write()
   if(_fd.isdir) {
     QDir d;
     d.mkpath(_fd.filename);
-
-//     struct utimbuf ubuf;
-//     ubuf.modtime = _fd.modtime;
-//     utime(qPrintable(_fd.filename), &ubuf);
-
-//     _file.setFileName(_fd.filename);
     return true;
   }
 
