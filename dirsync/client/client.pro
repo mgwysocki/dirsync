@@ -13,6 +13,7 @@ HEADERS       = ../md5/md5.h \
                 ../FileHandler.h \
                 ../FileAgent.h \
                 ../Preferences.h \
+                ../SocketTool.h \
                 PreferencesDialog.h \
                 ProgressDialog.h \
                 SaveFile.h \
@@ -29,6 +30,7 @@ SOURCES       = ../md5/md5.cxx \
                 ../FileHandler.cxx \
                 ../FileAgent.cxx \
                 ../Preferences.cxx \
+                ../SocketTool.cxx \
                 PreferencesDialog.cxx \
                 ProgressDialog.cxx \
                 SaveFile.cxx \

@@ -9,6 +9,7 @@ using namespace std;
 
 #include "../protocol.h"
 #include "../FileHandler.h"
+#include "../SocketTool.h"
 #include "NetworkClientThread.h"
 //#include "SyncModel.h"
 
@@ -102,13 +103,7 @@ bool NetworkClientThread::_connect_socket()
     return false;
   }
   
-  quint32 handshake(0);
-  QDataStream tcp(_socket);
-  tcp.setVersion(QDataStream::Qt_4_0);
-  if(_socket->bytesAvailable()==0)
-    if(!_socket->waitForReadyRead(10*1000))
-      cout << "_socket->waitForReadyRead() timed out!!!" << endl;
-  tcp >> handshake;
+  quint32 handshake( SocketTool::get_handshake(_socket) );
   if(handshake != HandShake::Acknowledge) return false;
   cout << "Received Acknowledge" << endl;
   
@@ -185,50 +180,20 @@ bool NetworkClientThread::_get_remote_filelist()
   cout << "NetworkClientThread::_get_remote_filelist()" << endl;
   _remote_filelist.clear();
   quint32 handshake(0);
-  QDataStream tcp(_socket);
-  tcp.setVersion(QDataStream::Qt_4_0);
-
-//   cout << "Reseting Server" << endl;
-//   tcp << HandShake::Reset;
-//   _socket->waitForReadyRead();
-//   tcp >> handshake;
-//   if(handshake != HandShake::Acknowledge) return;
-//   cout << "Received Acknowledge" << endl;
 
   cout << "Setting ServerDir: " << qPrintable(_server_dir) << endl;
-  tcp << HandShake::SetDirectory << _server_dir;
-  _socket->waitForReadyRead();
-  tcp >> handshake;
+  SocketTool::send_handshake( _socket, HandShake::SetDirectory );
+  SocketTool::send_QString( _socket, _server_dir );
+  handshake = SocketTool::get_handshake( _socket );
   if(handshake != HandShake::Acknowledge) return false;
   cout << "Received Acknowledge" << endl;
 
   cout << "Requesting List of Remote Changes..." << endl;
-  tcp << HandShake::RequestChangesList;
-  _socket->waitForReadyRead();
-  tcp >> handshake;
+  SocketTool::send_handshake( _socket, HandShake::RequestChangesList );
+  handshake = SocketTool::get_handshake( _socket );
   if(handshake != HandShake::SendingChangesList) return false;
 
-  quint32 nfiles(0);
-  if(_socket->bytesAvailable()==0) _socket->waitForReadyRead();
-  tcp >> nfiles;
-  cout << "Receiving info on " << nfiles << " files..." << endl;
-  for(quint32 i=0; i<nfiles; i++) {
-    FileData fd;
-    quint32 size(0);
-    if(_socket->bytesAvailable()<4) _socket->waitForReadyRead();
-    tcp >> size;
-    cout << i << "   " << size << endl;
-    while(_socket->bytesAvailable() < size ){
-      if(!_socket->waitForReadyRead(10*1000)) {
-	cout << "_socket->waitForReadyRead() Timed Out!!!" << endl;
-	return false;
-      }
-    }
-    tcp >> fd;
-    cout << "received info on " << qPrintable(fd.filename) 
-	 << ", " << fd.size << ", " << fd.modtime << ", " << hex << fd.perms << dec << endl;
-    _remote_filelist.append(fd);
-  }
+  _remote_filelist = SocketTool::get_QList_FileData( _socket );
   cout << "Received list of Remote Changed Files, size=" 
        << _remote_filelist.size() << endl;
 
@@ -238,29 +203,19 @@ bool NetworkClientThread::_get_remote_filelist()
 bool NetworkClientThread::_send_files()
 {
   cout << "NetworkClientThread::_send_files()" << endl;
-  int total_sent = 0;
-
   while(!_quit && _files_to_send.size()>0) {
 
     FileData local_fd(_files_to_send.takeFirst());
     cout << "Sending file to server: " << qPrintable(local_fd.relative_filename) << endl;
     emit change_upload_status( QString("Sending to server:\n%1").arg(local_fd.relative_filename) );
 
-    quint32 handshake;
-    QDataStream tcp(_socket);
-    tcp.setVersion(QDataStream::Qt_4_0);
-    cout << "NetworkClientThread: sending FileData..." << endl
-	 << "FileData::filename = " << qPrintable(local_fd.filename) << endl
-	 << "FileData::size = " << local_fd.size << endl
-	 << "FileData::modtime = " << local_fd.modtime << endl;
+    quint32 handshake(0);
+    cout << "NetworkClientThread: sending FileData...\n" << local_fd << endl;
 
-    tcp << HandShake::SendingFile;
-    FileHandler::send_fd_to_socket(local_fd, _socket);
+    SocketTool::send_handshake( _socket, HandShake::SendingFile );
+    SocketTool::send_FileData(_socket, local_fd);
 
-    if(!_socket->waitForReadyRead())
-      cout << "_socket->waitForReadyRead(10000) Timed Out!!!" << endl;
-
-    tcp >> handshake;
+    handshake = SocketTool::get_handshake(_socket);
     if(handshake != HandShake::Acknowledge) {
       cout << "Wrong handshake! (" << handshake << ")" << endl;
       return false;
@@ -283,67 +238,48 @@ bool NetworkClientThread::_send_files()
     while(remaining_size>0) {
       if(remaining_size<blocksize) blocksize = remaining_size;
       QByteArray data( outfile.read(blocksize) );
-      tcp << data;
+      SocketTool::send_block( _socket, data );
       tmp_md5.add_data(data);
       remaining_size -= blocksize;
     }
     outfile.close();
 
-    QString hash = tmp_md5.get_hex_string();
-    cout << "md5: " << qPrintable(hash) << endl;
-    tcp << (4+2*hash.length()) << hash;
+    QString md5str = tmp_md5.get_hex_string();
+    cout << "md5: " << qPrintable(md5str) << endl;
+    SocketTool::send_QString( _socket, md5str );
     
     while(_socket->bytesToWrite()>0) {
       _socket->waitForBytesWritten();
     }
 
     cout << "Waiting for acknowledge..." << endl;
-    while(_socket->bytesAvailable() < 4)
-      _socket->waitForReadyRead();
-    tcp >> handshake;
+    handshake = SocketTool::get_handshake( _socket );
     if(handshake != HandShake::Acknowledge) {
       cout << "Wrong handshake! (" << handshake << ")" << endl;
       return false;
     }
     disconnect(_socket, SIGNAL(bytesWritten(qint64)), this, SIGNAL(bytesWritten(qint64)));
-    //emit increment_upload();
   }
   
   emit change_upload_status( QString("Upload complete.") );
   return true;
 }
 
+
 bool NetworkClientThread::_get_files()
 {
   cout << "NetworkClientThread::_get_files()" << endl;
-  int total_received = 0;
-
   while(!_quit && _files_to_get.size()>0) {
 
     FileData remote_fd(_files_to_get.takeFirst());
     emit change_download_status(QString("Downloading from server:\n%1").arg(remote_fd.relative_filename) );
 
-    cout << "NetworkClientThread: requesting file..." << endl
-	 << "FileData::filename = " << qPrintable(remote_fd.filename) << endl
-	 << "FileData::size = " << remote_fd.size << endl
-	 << "FileData::modtime = " << remote_fd.modtime << endl;
-
+    cout << "NetworkClientThread: requesting file...\n" << remote_fd << endl;
     buffer.clear();
     quint32 handshake;
-    QDataStream tcp(_socket);
-    tcp.setVersion(QDataStream::Qt_4_0);
-    tcp << HandShake::RequestFile;
-    FileHandler::send_fd_to_socket(remote_fd, _socket);
-    while( _socket->bytesAvailable() < 4) {
-      if( !_socket->waitForReadyRead(10000)) {
-	emit error(_socket->errorString());
-	cout << qPrintable(_socket->errorString()) << endl;
-	//return false;
-	cout << "Timeout while waiting for handshake!" << endl;
-      }
-    }
-    //_socket->waitForReadyRead();
-    tcp >> handshake;
+    SocketTool::send_handshake( _socket, HandShake::RequestFile );
+    SocketTool::send_FileData(_socket, remote_fd);
+    handshake = SocketTool::get_handshake( _socket );
     if(handshake != HandShake::SendingFile) {
       cout << "Wrong handshake! (" << handshake << ")" << endl;
       return false;
@@ -356,46 +292,22 @@ bool NetworkClientThread::_get_files()
     
     if( !fh.begin_file_write() ) return false;
     if( fh.get_fd().isdir ) {
-      //emit increment_download();
       continue;
     }
 
     // Read data into buffer, one chunk at a time
     quint64 remaining_size(remote_fd.size);
     while(remaining_size>0) {
-      quint32 blocksize;
 
-      if( _socket->bytesAvailable() == 0 ){
-	_socket->waitForReadyRead();
-      }
-
-      tcp >> blocksize;
-      
-      while( _socket->bytesAvailable() < blocksize) {
-	if( !_socket->waitForReadyRead(10000)) {
-	  emit error(_socket->errorString());
-	  cout << qPrintable(_socket->errorString()) << endl;
-	  return false;
-	}
-      }
-
-      //cout << _socket->bytesAvailable() << " bytes available after wait" << endl;
-      buffer.append(_socket->read(blocksize));
+      buffer.append( SocketTool::get_block(_socket) );
       remaining_size -= buffer.size();
-      //cout << "buffer size = " << buffer.size() << endl;
       fh.write_to_file(buffer);
       emit bytesReceived(buffer.size());
       buffer.clear();
     }
 
-    quint32 hashsize(0);
-    QString sent_hash;
-    while( _socket->bytesAvailable() < 4) _socket->waitForReadyRead();
-    tcp >> hashsize;
-    while( _socket->bytesAvailable() < hashsize) _socket->waitForReadyRead();
-    tcp >> sent_hash;
-
-    fh.end_file_write( sent_hash );
+    QString md5str( SocketTool::get_QString(_socket) );
+    fh.end_file_write( md5str );
     buffer.clear();
   }
 
@@ -409,27 +321,10 @@ bool NetworkClientThread::_delete_remote_files()
   cout << "NetworkClientThread::_delete_remote_files()" << endl;
   if(!_quit && _remote_files_to_delete.size()>0) {
 
-    quint32 handshake;
-    QDataStream tcp(_socket);
-    tcp.setVersion(QDataStream::Qt_4_0);
-    tcp << HandShake::DeleteFiles;
+    SocketTool::send_handshake( _socket, HandShake::DeleteFiles );
+    SocketTool::send_QList_FileData(_socket, _remote_files_to_delete);
 
-    tcp << quint32(_remote_files_to_delete.size());
-
-    for(int i=0; i<_remote_files_to_delete.size(); i++) {
-      FileData fd(_remote_files_to_delete[i]);
-      cout << "Sending FD:\n" << fd << endl;
-      FileHandler::send_fd_to_socket(fd, _socket);
-    }
-
-    while( _socket->bytesAvailable() < 4) {
-      if( !_socket->waitForReadyRead(10000)) {
-	emit error(_socket->errorString());
-	cout << qPrintable(_socket->errorString()) << endl;
-	return false;
-      }
-    }
-    tcp >> handshake;
+    quint32 handshake = SocketTool::get_handshake( _socket );
     if(handshake != HandShake::Acknowledge) {
       cout << "Bad handshake from server! (" << handshake << ")" << endl;
       return false;

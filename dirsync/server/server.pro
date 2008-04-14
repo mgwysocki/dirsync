@@ -8,6 +8,7 @@ CONFIG += qt thread
 
 HEADERS       = ../md5/md5.h \
                 ../FileData.h \
+                ../SocketTool.h \
                 ../FileHandler.h \
                 ../Preferences.h \
                 NetworkServer.h \
@@ -16,6 +17,7 @@ HEADERS       = ../md5/md5.h \
 
 SOURCES       = ../md5/md5.cxx \
                 ../FileData.cxx \
+                ../SocketTool.cxx \
                 ../FileHandler.cxx \
                 ../Preferences.cxx \
                 NetworkServer.cxx \

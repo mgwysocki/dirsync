@@ -19,7 +19,7 @@ std::ostream& operator<<(std::ostream& os, const FileData& fd)
 {
   QDateTime dt;
   dt.setTime_t(fd.modtime);
-  os << qPrintable(fd.filename) << " (" << fd.size << " bytes, chksum " << fd.checksum << ") " << qPrintable(dt.toString());
+  os << qPrintable(fd.filename) << " (" << fd.size << " bytes) " << qPrintable(dt.toString());
   return os;
 };
 

@@ -9,6 +9,7 @@
 using namespace std;
 
 #include "../protocol.h"
+#include "../SocketTool.h"
 #include "NetworkServer.h"
 
 NetworkServer::NetworkServer(int port, QObject* parent) :
@@ -99,9 +100,7 @@ void NetworkServer::new_connection()
   disconnect(_server, SIGNAL(newConnection()), this, SLOT(new_connection()));
 
   cout << "Sending acknowledge..." << endl;
-  QDataStream tcp(_socket);
-  tcp.setVersion(QDataStream::Qt_4_0);
-  tcp << HandShake::Acknowledge;
+  SocketTool::send_handshake( _socket, HandShake::Acknowledge );
   connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
   return;
 }
@@ -123,89 +122,50 @@ void NetworkServer::read_incoming()
   QMutexLocker locker(&_mutex);    
   disconnect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
 
-  quint32 handshake(0);
-  QDataStream tcp(_socket);
-  tcp.setVersion(QDataStream::Qt_4_0);
-
-  if(_socket->bytesAvailable() == 0) {
-    cout << "_socket->waitForReadyRead()" << endl;
-    _socket->waitForReadyRead();
-  }
-  tcp >> handshake;
+  quint32 handshake( SocketTool::get_handshake(_socket) );
   cout << "Received handshake: " << HandShake::strings[handshake] << endl;
 
   if(handshake == HandShake::SetDirectory) {
-    QString d;
-    tcp >> d;
-    _dir = d;
+    _dir = SocketTool::get_QString(_socket);
+    cout << "Setting directory to " << qPrintable(_dir) << endl;
     cout << "Sending acknowledge..." << endl;
-    tcp << HandShake::Acknowledge;
+    SocketTool::send_handshake( _socket, HandShake::Acknowledge );
     _make_local_file_list();
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-    return;
 
   } else if(handshake == HandShake::RequestChangesList) {
-    tcp << HandShake::SendingChangesList;
-    tcp << _current_files_list.size();
-    for(int i=0; i<_current_files_list.size(); i++) {
-      FileData fd(_current_files_list[i]);
-      cout << "FileData::filename = " << qPrintable(fd.relative_filename) << endl
-	   << "FileData::size = " << fd.size << endl
-	   << "FileData::modtime = " << fd.modtime << endl;
-      FileHandler::send_fd_to_socket(fd, _socket);
-    }
-
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-    return;
+    SocketTool::send_handshake( _socket, HandShake::SendingChangesList );
+    SocketTool::send_QList_FileData(_socket, _current_files_list);
 
   } else if(handshake == HandShake::RequestFile) {
-    if(_socket->bytesAvailable() == 0) _socket->waitForReadyRead();
-    FileData fd( FileHandler::get_fd_from_socket(_socket) );
-    tcp << HandShake::SendingFile;
-    _socket->flush();
+    FileData fd( SocketTool::get_FileData(_socket) );
+    SocketTool::send_handshake( _socket, HandShake::SendingFile );
     _send_file(fd);
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-    return;
 
   } else if(handshake == HandShake::SendingFile) {
-    if(_socket->bytesAvailable() == 0) _socket->waitForReadyRead();
-    FileData fd( FileHandler::get_fd_from_socket(_socket) );
-    cout << "FileData::filename = " << qPrintable(fd.relative_filename) << endl
-	 << "FileData::size = " << fd.size << endl
-	 << "FileData::modtime = " << fd.modtime << endl;
+    FileData fd( SocketTool::get_FileData(_socket) );
+    cout << fd << endl;
 
-    tcp << HandShake::Acknowledge;
+    SocketTool::send_handshake( _socket, HandShake::Acknowledge );
     _receive_file(fd);
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-    return;
 
   } else if(handshake == HandShake::DeleteFiles) {
-    if(_socket->bytesAvailable() == 0) _socket->waitForReadyRead();
-    quint32 n_files_to_delete(0);
-    tcp >> n_files_to_delete;
 
-    QList<FileData> files_to_delete;
-    for(quint32 i=0; i<n_files_to_delete; i++) {
-      FileData fd( FileHandler::get_fd_from_socket(_socket) );
-      files_to_delete.append(fd);
-    }
-
+    QList<FileData> files_to_delete( SocketTool::get_QList_FileData(_socket) );
     _delete_local_files(files_to_delete);
+
     cout << "Sending acknowledge..." << endl;
-    tcp << HandShake::Acknowledge;
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-    return;
+    SocketTool::send_handshake( _socket, HandShake::Acknowledge );
 
   } else if(handshake == HandShake::Reset) {
     _current_files_list.clear();
     cout << "Sending acknowledge..." << endl;
-    tcp << HandShake::Acknowledge;
-    connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-    return;
+    SocketTool::send_handshake( _socket, HandShake::Acknowledge );
+
+  } else {
+    cout << "Unrecognized handshake!" << endl;
   }
 
   connect(_socket, SIGNAL(readyRead()), this, SLOT(read_incoming()));
-  printf("Unrecognized handshake!\n");
   return;
 }
 
@@ -215,14 +175,7 @@ void NetworkServer::read_incoming()
 //
 void NetworkServer::_send_file(const FileData &fd)
 {
-  cout << "Sending file to client: " << qPrintable(fd.relative_filename) << endl;
-
-  QDataStream tcp(_socket);
-  tcp.setVersion(QDataStream::Qt_4_0);
-  cout << "NetworkServer: sending FileData..." << endl
-       << "FileData::filename = " << qPrintable(fd.filename) << endl
-       << "FileData::size = " << fd.size << endl
-       << "FileData::modtime = " << fd.modtime << endl;
+  cout << "NetworkServer: sending FileData...\n" << fd << endl;
 
   if(fd.isdir) {
     cout << "fd.isdir == true... FileData sent." << endl;
@@ -239,7 +192,7 @@ void NetworkServer::_send_file(const FileData &fd)
     //cout << "remaining_size,blocksize = " << remaining_size << "," << blocksize << endl;
     if(remaining_size<blocksize) blocksize = remaining_size;
     QByteArray data( outfile.read(blocksize) );
-    tcp << data;
+    SocketTool::send_block(_socket, data);
     tmp_md5.add_data(data);
     remaining_size -= blocksize;
   }
@@ -248,10 +201,7 @@ void NetworkServer::_send_file(const FileData &fd)
 
   QString hash = tmp_md5.get_hex_string();
   cout << "md5: " << qPrintable(hash) << endl;
-  tcp << (4+2*hash.length()) << hash;
-
-  //FileHandler fh(fd);
-  //cout << "Checksum: " << fh.get_checksum() << endl;
+  SocketTool::send_QString(_socket, hash);
   return;
 }
 
@@ -262,8 +212,6 @@ void NetworkServer::_send_file(const FileData &fd)
 void NetworkServer::_receive_file(const FileData &client_fd)
 {
   cout << "Receiving file: " << qPrintable(client_fd.relative_filename) << endl;
-  QDataStream tcp(_socket);
-  tcp.setVersion(QDataStream::Qt_4_0);
   buffer.clear();
 
   QString full_path = QDir::cleanPath(_dir + "/" + client_fd.relative_filename);
@@ -277,48 +225,20 @@ void NetworkServer::_receive_file(const FileData &client_fd)
 
   // Read data into buffer, one chunk at a time
   quint64 remaining_size(client_fd.size);
+
   while(remaining_size>0) {
-    quint32 blocksize;
-
-    if( _socket->bytesAvailable() == 0 ){
-      _socket->waitForReadyRead();
-    }
-
-    tcp >> blocksize;
-    // cout << "remaining_size, block_size = " 
-    //      << remaining_size << ", " << blocksize << endl;
-
-    while( _socket->bytesAvailable() < blocksize) {
-      if( !_socket->waitForReadyRead(10000)) {
-	emit error(_socket->errorString());
-	cout << qPrintable(_socket->errorString()) << endl;
-	return;
-      }
-    }
-
-    //cout << _socket->bytesAvailable() << " bytes available after wait" << endl;
-    buffer.append(_socket->read(blocksize));
+    buffer.append( SocketTool::get_block(_socket) );
     remaining_size -= buffer.size();
-    //cout << "buffer size = " << buffer.size() << endl;
     fh.write_to_file(buffer);
     buffer.clear();
   }
 
-  quint32 hashsize(0);
-  QString sent_hash;
-  while( _socket->bytesAvailable() < 4) _socket->waitForReadyRead();
-  tcp >> hashsize;
-  while( _socket->bytesAvailable() < hashsize) _socket->waitForReadyRead();
-  tcp >> sent_hash;
-
+  QString sent_hash( SocketTool::get_QString(_socket) );
   fh.end_file_write( sent_hash );
   buffer.clear();
 
-  printf("Received filename: %s (%ld bytes)\n", 
-	 qPrintable(fd.relative_filename), (long unsigned int) fd.size);
-
-  //cout << "Checksum: " << fh.get_checksum() << endl;
-  tcp << HandShake::Acknowledge;
+  cout << "Received:\n" << fd << endl;
+  SocketTool::send_handshake( _socket, HandShake::Acknowledge );
   return;
 }
 

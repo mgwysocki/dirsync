@@ -52,33 +52,6 @@ void FileHandler::_load_file_data(const QString &full_path)
 }
 
 
-FileData FileHandler::get_fd_from_socket(QTcpSocket* socket)
-{
-  quint32 size(0);
-  FileData fd;
-  QDataStream tcp(socket);    // read the data serialized from the socket
-  while(socket->bytesAvailable() < 4) {
-    if(! socket->waitForReadyRead(10*1000)) {
-      //emit error(tr("FileHandler::get_fd_from_socket() - socket timed out!"));
-      cout << "FileHandler::get_fd_from_socket() - socket timed out!" << endl;
-      return fd;
-    }
-  }
-  tcp >> size;
-
-  while(socket->bytesAvailable() < size) {
-    if(! socket->waitForReadyRead(10*1000)) {
-      //emit error(tr("FileHandler::get_fd_from_socket() - socket timed out!"));
-      cout << "FileHandler::get_fd_from_socket() - socket timed out!" << endl;
-      return fd;
-    }
-  }
-  tcp >> fd;
-  cout << "Received FileData:\n" << fd << endl;
-  return fd;
-}
-
-
 void FileHandler::send_fd_to_socket(const FileData &fd, QTcpSocket* socket)
 {
   QDataStream tcp(socket);    // write the data serialized to socket
