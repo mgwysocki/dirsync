@@ -4,8 +4,8 @@
 #include <QObject>
 #include <string>
 
-#include "../FileData.h"
-#include "../md5/md5.h"
+#include "FileData.h"
+#include "md5/md5.h"
 
 class QTcpSocket;
 
