@@ -1,16 +1,19 @@
 #ifndef __PREFERENCES_H
 #define __PREFERENCES_H
 
+//-----------------------------------------------------------------
+// The Preferences class is a singleton for storing & accessing the 
+// program preferences.
+//
+//  preferences:
+//   window size, position
+//   temp file directory
+//   copy permission bits (doesn't work when going Unix <-> Windows)
+// -----------------------------------------------------------------
+
 #include <QString>
 #include <QSize>
 #include <QPoint>
-
-/* 
- preferences:
-  window size, position
-  temp file directory
-  copy permission bits (doesn't work when going Unix <-> Windows)
-*/
 
 class Preferences
 {

@@ -1,6 +1,11 @@
 #ifndef FILEHANDLER_H
 #define FILEHANDLER_H
 
+//-----------------------------------------------------------------
+// The FileHandler class is the interface for reading & writing files
+// to disks and calculating MD5 sums.
+// -----------------------------------------------------------------
+
 #include <QObject>
 #include <string>
 

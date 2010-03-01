@@ -1,6 +1,11 @@
 #ifndef __FILEDATA_H
 #define __FILEDATA_H
 
+//--------------------------------------------------------------- 
+// The FileData class stores the properties for an individual file,
+// and can be read & written to QDataStream.
+// ---------------------------------------------------------------
+
 #include <sys/stat.h>
 
 #include <QDir>

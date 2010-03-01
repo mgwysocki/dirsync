@@ -1,6 +1,11 @@
 #ifndef __SOCKETTOOL_H
 #define __SOCKETTOOL_H
 
+//-----------------------------------------------------------------
+// The SocketTool class is the interface for reading & writing data
+// over QTcpSockets.
+// -----------------------------------------------------------------
+
 #include "FileData.h"
 class QTcpSocket;
 

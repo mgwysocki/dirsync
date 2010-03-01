@@ -1,6 +1,12 @@
 #ifndef __FILEAGENT_H
 #define __FILEAGENT_H
 
+//-----------------------------------------------------------------
+// The FileAgent class stores the FileDatas and comparison for two
+// instances of an individual file, and can be read & written to
+// QDataStream.
+// -----------------------------------------------------------------
+
 #include "FileData.h"
 
 class FileAgent {
