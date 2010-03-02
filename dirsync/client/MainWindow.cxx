@@ -51,21 +51,22 @@ void MainWindow::new_sync()
 
   _sync_model->reset();
 
-  NewSyncDialog cd(this);
-  int value = cd.exec();
+  NewSyncDialog nsd(this);
+  int value = nsd.exec();
   if(value == QDialog::Rejected)
     return;
 
+  _sync_model->set_profile_data( nsd.get_current_profile() );
   _net_thread.reset();
 
   cout << "MainWindow: setting the server, port, and dirs..." << endl;
-  _local_dir = ( cd.client_dir() );
-  _remote_dir = ( cd.server_dir() );
+  _local_dir = ( nsd.client_dir() );
+  _remote_dir = ( nsd.server_dir() );
   _sync_model->set_local_dir(_local_dir);
   _sync_model->make_local_list();
 
-  _net_thread.set_server( cd.server() );
-  _net_thread.set_port( cd.port() );
+  _net_thread.set_server( nsd.server() );
+  _net_thread.set_port( nsd.port() );
   _net_thread.set_local_dir( _local_dir );
   _net_thread.set_remote_dir( _remote_dir );
   _net_thread.reset_server();
