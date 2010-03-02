@@ -10,7 +10,7 @@ class QLabel;
 class QPushButton;
 class QListView;
 
-#include "SaveFile.h"
+#include "ProfileData.h"
 
 class ProfileReader : public QAbstractListModel
 {
@@ -24,14 +24,14 @@ Q_OBJECT
   void update_profile(const QModelIndex &, QString, QString, QString);
   QModelIndex add_new_profile();
 
-  SaveFile get_profile(const QModelIndex &) const;
+  ProfileData get_profile(const QModelIndex &) const;
   QString get_name(const QModelIndex &) const;
   QString get_client_dir(const QModelIndex &) const;
   QString get_server_dir(const QModelIndex &) const;
 
   void read_profiles();
   QDir profile_dir;
-  QList<SaveFile> profile_list;
+  QList<ProfileData> profile_list;
 };
 
 
@@ -46,7 +46,7 @@ Q_OBJECT
   int port() {return _port_lineedit->text().toInt();}
   QString client_dir() {return _clientdir_lineedit->text();}
   QString server_dir() {return _serverdir_lineedit->text();}
-  SaveFile get_current_profile();
+  ProfileData get_current_profile();
 
  private slots:
   void enable_go_button();

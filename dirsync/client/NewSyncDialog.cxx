@@ -19,10 +19,10 @@ void ProfileReader::read_profiles()
   }
 
   profile_dir.cd("profiles");
-  QList<SaveFile> temp_list;
+  QList<ProfileData> temp_list;
   QFileInfoList profile_files = profile_dir.entryInfoList(QDir::Files);
   for(int i=0; i<profile_files.size(); i++) {
-    SaveFile sf(profile_files[i].absoluteFilePath());
+    ProfileData sf(profile_files[i].absoluteFilePath());
     sf.load_header_info();
     temp_list.append(sf);
   }
@@ -33,7 +33,8 @@ void ProfileReader::read_profiles()
   return;
 }
 
-void ProfileReader::update_profile(const QModelIndex &index, QString name, QString clientdir, QString serverdir)
+void ProfileReader::update_profile(const QModelIndex &index, QString name,
+                                   QString clientdir, QString serverdir)
 {
   int r = index.row();
   profile_list[r].name = name;
@@ -44,7 +45,7 @@ void ProfileReader::update_profile(const QModelIndex &index, QString name, QStri
 
   emit dataChanged(index, index);
 
-  profile_list[r].save_to_file();
+  profile_list[r].save_header_info();
   return;
 }
 
@@ -59,9 +60,9 @@ QModelIndex ProfileReader::add_new_profile()
   QString filename = QString("%1/%2.dat").arg(profile_dir.absolutePath()).arg(maxnum+1);
   filename = QDir::toNativeSeparators(filename);
 
-  SaveFile sf(filename);
+  ProfileData sf(filename);
   sf.name = tr("New Profile");
-  sf.save_to_file();
+  sf.save_header_info();
 
   beginInsertRows( QModelIndex(), profile_list.size()-1, profile_list.size());
   profile_list.append(sf);
@@ -84,12 +85,12 @@ QVariant ProfileReader::data(const QModelIndex &index, int role = Qt::DisplayRol
   return QVariant();
 }
 
-SaveFile ProfileReader::get_profile(const QModelIndex &index) const
+ProfileData ProfileReader::get_profile(const QModelIndex &index) const
 {
   int r = index.row();
   if(r<profile_list.size())
     return profile_list[r];
-  return SaveFile();
+  return ProfileData("");
 }
 
 QString ProfileReader::get_name(const QModelIndex &index) const
@@ -277,11 +278,11 @@ void NewSyncDialog::save_profile()
   return;
 }
 
-SaveFile NewSyncDialog::get_current_profile()
+ProfileData NewSyncDialog::get_current_profile()
 {
   QModelIndexList indexes = _profiles_lv->selectionModel()->selectedIndexes();
   if(!indexes.size())
-    return SaveFile();
+    return ProfileData("");
 
   QModelIndex index = indexes[0];
   return _profile_reader.get_profile(index);
