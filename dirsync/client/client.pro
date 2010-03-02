@@ -16,8 +16,9 @@ HEADERS       = ../md5/md5.h \
                 ../SocketTool.h \
                 PreferencesDialog.h \
                 ProgressDialog.h \
-                SaveFile.h \
+                ProfileData.h \
                 DirData.h \
+                SyncData.h \
                 SyncModel.h \
                 NetworkClientThread.h \
                 NewSyncDialog.h \
@@ -33,8 +34,9 @@ SOURCES       = ../md5/md5.cxx \
                 ../SocketTool.cxx \
                 PreferencesDialog.cxx \
                 ProgressDialog.cxx \
-                SaveFile.cxx \
+                ProfileData.cxx \
                 DirData.cxx \
+                SyncData.cxx \
                 SyncModel.cxx \
                 NetworkClientThread.cxx \
                 NewSyncDialog.cxx \
