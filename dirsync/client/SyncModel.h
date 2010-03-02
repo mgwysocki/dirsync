@@ -8,54 +8,7 @@
 #include "../FileHandler.h"
 #include "../FileData.h"
 #include "DirData.h"
-
-namespace Action {
-  const int Unset = 0;
-  const int SendToServer = 1;
-  const int GetFromServer = 2;
-  const int DeleteFromServer = 3;
-  const int DeleteFromClient = 4;
-  const int Unclear = 5;
-  const int None = 6;
-
-  const QString strings[7] = {QString("None"),
-			      QString("Copy Right"),
-			      QString("Copy Left"),
-			      QString("Delete from Right"),
-			      QString("Delete from Left"),
-			      QString("Unclear"),
-			      QString("None")};
-};
-
-
-class SyncData
-{
- public:
-  SyncData();
-  SyncData(const FileAgent&, const FileAgent&, bool);
-  SyncData(const SyncData &);
-  ~SyncData() {}
-
-  std::pair<QString,QString> get_info() const;
-
-  bool operator<(const SyncData &sd) const
-  { return (relative_filename < sd.relative_filename); }
-
-  void determine_situation_first_time();
-  void determine_situation();
-
-  QString relative_filename;
-
-  FileAgent local;
-  FileAgent remote;
-
-  QString situ;
-  int action;
-
-  friend QDataStream & operator<<( QDataStream &dout, const SyncData &sd );
-  friend QDataStream & operator>>( QDataStream &din, SyncData &sd );
-};
-
+#include "ProfileData.h"
 
 class SyncModel : public QAbstractTableModel
 {
@@ -63,6 +16,8 @@ Q_OBJECT
 
  public:
   SyncModel();
+  ~SyncModel() {if(profile_data_) delete profile_data_;}
+
   int rowCount(const QModelIndex &) const {return _diff_only ? diff_list.size() : sync_list.size();}
   int columnCount(const QModelIndex &) const {return 4;}
 
@@ -78,6 +33,11 @@ Q_OBJECT
   QList<FileData> get_files_to_get();
   QList<FileData> get_remote_files_to_delete();
   QList<FileData> get_local_files_to_delete();
+
+  void set_profile_data(ProfileData pd) {
+    if(profile_data_) delete profile_data_;
+    profile_data_ = new ProfileData(pd);
+  }
 
   QString get_local_dir() {return _local_dir;}
   void set_local_dir(QString d) {_local_dir = d; _local_dirdata.set_dir(d);}
@@ -122,6 +82,8 @@ Q_OBJECT
   QString _local_dir;
   DirData _local_dirdata;
   DirData _remote_dirdata;
+
+  ProfileData* profile_data_;
 
   QList<SyncData> sync_list;
   QList<SyncData*> diff_list;
