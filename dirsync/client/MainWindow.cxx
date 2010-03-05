@@ -45,6 +45,12 @@ MainWindow::MainWindow() :
   new_sync();
 }
 
+MainWindow::~MainWindow()
+{
+  if( _sync_model )
+    delete _sync_model;
+}
+
 void MainWindow::new_sync()
 {
   cout << "MainWindow::new_sync()" << endl;
