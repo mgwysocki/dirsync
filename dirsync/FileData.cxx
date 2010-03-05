@@ -20,18 +20,22 @@ std::ostream& operator<<(std::ostream& os, const FileData& fd)
   QDateTime dt;
   dt.setTime_t(fd.modtime);
   os << qPrintable(fd.filename) << " (" << fd.size << " bytes) " << qPrintable(dt.toString());
+//      << "isdir: " << fd.isdir
+//      << "initialized: " << fd.initialized;
+  
   return os;
 };
 
 
+
 QDataStream & operator<<( QDataStream &dout, const FileData &fd )
 {
-  quint32 temp = fd.isdir;
-  temp ^= (fd.initialized<<1);
-  temp ^= (fd.synced<<2);
+  quint32 temp = quint32(fd.isdir);
+  temp ^= (quint32(fd.initialized)<<1);
+  temp ^= (quint32(fd.synced)<<2);
   
   return dout << fd.filename << fd.relative_filename << fd.size 
-	      << fd.acctime << fd.modtime << fd.perms << temp << fd.checksum;
+              << fd.acctime << fd.modtime << fd.perms << temp << fd.checksum;
 };
 
 QDataStream & operator>>( QDataStream &din, FileData &fd )
